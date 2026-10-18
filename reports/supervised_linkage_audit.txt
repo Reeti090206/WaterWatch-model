@@ -1,0 +1,12 @@
+STATUS: NO GROUND-TRUTH WATERLOGGING OUTCOME LABELS AVAILABLE IN WORKSPACE
+-------------------------------------------------------------------------
+1. Meteorological datasets contain physical precipitation measurements (mm) but no
+   flood/waterlogging incident logs, traffic police advisories, or municipal tickets.
+2. Roboflow and Kaggle image archives contain road scenes and visual bounding boxes/masks
+   without capture timestamps, GPS coordinates, or linkage to Maharashtra rain stations.
+3. SCIENTIFIC INTEGRITY MANDATE: We do not invent synthetic labels or pretend that a
+   rainfall threshold equals waterlogging ground truth.
+4. A formal ingestion schema has been saved at:
+   D:\PROJECTS\WaterWatch (ML model)\data\manifests\waterlogging_event_schema.json
+5. When verified municipal municipal waterlogging logs are provided, execute:
+   python scripts/build_event_dataset.py --events <path_to_events.csv>

@@ -1,0 +1,4 @@
+Dataset_Key,File_Name,File_Size_MB,Total_Rows,Rainfall_Column,Valid_Rainfall_Rows,Missing_Rainfall_Rows,Missing_Rainfall_Pct,Zero_Rainfall_Rows,Invalid_Datetime_Rows,Start_Date,End_Date,Unique_Districts,Unique_Stations,Nagpur_Rows,Nagpur_Stations_Count,Rainfall_Min_mm,Rainfall_Max_mm,Rainfall_Mean_mm,Rainfall_Median_mm
+manual_daily,rainfall_manual_daily_maharashtra_sw_mh_2021_2025.csv,18.69,121904,Manual Daily Rainfall (mm),121904,0,0.0,0,0,2021-01-01 08:30,2025-07-31 08:30,33,658,1468,9,0.02,650.0,24.72,13.0
+tel_hourly_cwc,rainfall_tel_hr_cwc_mh_2021_2025.csv,35.02,266707,Telemetry Hourly Rainfall (mm),22590,244117,91.53,0,0,2021-01-01 05:30,2025-12-29 14:30,22,58,0,0,0.1,511.5,90.34,3.0
+tel_hourly_sw,rainfall_tel_hr_maharashtra-sw_mh_1991_2020.csv,0.04,268,Telemetry Hourly Rainfall (mm),268,0,0.0,0,0,2003-06-28 19:00,2020-12-13 01:30,8,10,3,2,0.2,675.0,5.93,1.0
