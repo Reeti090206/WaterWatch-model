@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaterWatch AI — Real-Time Nagpur Waterlogging & Route Recommendation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="header-nav">
+    <div class="nav-container">
+      <a href="#" class="brand-badge">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+        </svg>
+        <span>WaterWatch <span style="color:var(--accent-blue);">AI</span></span>
+        <span class="badge badge-low" style="font-size:0.65rem; margin-left:6px;">Nagpur Platform</span>
+      </a>
+
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="tab-dashboard">📊 Dashboard</button>
+        <button class="tab-btn" data-tab="tab-map">🗺️ Nagpur Map</button>
+        <button class="tab-btn" data-tab="tab-routes">🧭 Route Planner</button>
+        <button class="tab-btn" data-tab="tab-predict">🌧️ Rainfall Risk</button>
+        <button class="tab-btn" data-tab="tab-detect">📷 Image Detection</button>
+        <button class="tab-btn" data-tab="tab-report">📢 Report Incident</button>
+        <button class="tab-btn" data-tab="tab-admin">🛡️ Authority Review</button>
+        <button class="tab-btn" data-tab="tab-status">ℹ️ Model Status</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Application Body -->
+  <main class="main-content">
+
+    <!-- 1. DASHBOARD TAB -->
+    <section id="tab-dashboard" class="tab-pane active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Incidents</span>
+          <div class="kpi-val" id="kpi-total-incidents">--</div>
+          <span class="kpi-meta">Nagpur Municipal Jurisdiction</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Verified Floods</span>
+          <div class="kpi-val" style="color:var(--accent-emerald);" id="kpi-verified">--</div>
+          <span class="kpi-meta">NMC / Police Confirmed</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Citizen Reports</span>
+          <div class="kpi-val" style="color:var(--accent-cyan);" id="kpi-unverified">--</div>
+          <span class="kpi-meta">Awaiting Field Review</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Active Road Closures</span>
+          <div class="kpi-val" style="color:var(--accent-rose);" id="kpi-closures">--</div>
+          <span class="kpi-meta">Detours Active</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Chronic Hotspots</span>
+          <div class="kpi-val" style="color:var(--accent-indigo);" id="kpi-hotspots">--</div>
+          <span class="kpi-meta">Historical Railway Underpasses & Low Points</span>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+        <div class="card">
+          <div class="card-title">
+            <span>🌦️ Live Nagpur Weather Feed</span>
+            <span class="badge badge-low" style="font-size:0.7rem;">Open-Meteo Integration</span>
+          </div>
+          <div id="weather-status-box" style="padding:0.5rem 0;">
+            <div style="color:var(--text-muted); font-size:0.85rem;">Connecting to atmospheric feed...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>⚠️ Active Hazard Advisories</span>
+            <span class="badge badge-high" style="font-size:0.7rem;">Live Feeds</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; text-align:left; border-collapse:collapse; font-size:0.85rem;">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                  <th style="padding:0.4rem;">Alert</th>
+                  <th style="padding:0.4rem;">Locality</th>
+                  <th style="padding:0.4rem;">Severity</th>
+                  <th style="padding:0.4rem;">Type</th>
+                </tr>
+              </thead>
+              <tbody id="recent-alerts-body">
+                <tr><td colspan="4" style="padding:0.5rem; text-align:center; color:var(--text-muted);">Loading hazards...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. INTERACTIVE MAP TAB -->
+    <section id="tab-map" class="tab-pane">
+      <div class="card" style="margin-bottom:0.75rem;">
+        <div class="map-controls-bar">
+          <span style="font-weight:600; font-size:0.85rem; color:#fff;">Layer Toggles:</span>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-incidents" checked> 🔴 Verified Incidents
+          </label>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-closures" checked> ⛔ Road Closures
+          </label>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-hotspots" checked> 🟣 Chronic Hotspots
+          </label>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-reports" checked> 🔵 Citizen Reports
+          </label>
+          <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">
+            💡 <i>Click anywhere on the map to automatically capture GPS coordinates for reporting</i>
+          </span>
+        </div>
+        <div id="nagpur-map"></div>
+      </div>
+    </section>
+
+    <!-- 3. INTELLIGENT ROUTE PLANNER TAB -->
+    <section id="tab-routes" class="tab-pane">
+      <div class="route-grid">
+        <div class="card">
+          <div class="card-title">🧭 Plan Route Around Waterlogging</div>
+          
+          <div class="form-group">
+            <label>Origin Point (Nagpur Landmark)</label>
+            <select id="route-origin-preset" class="select-field"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Destination Point</label>
+            <select id="route-dest-preset" class="select-field"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Travel Mode</label>
+            <select id="route-mode" class="select-field">
+              <option value="driving" selected>🚗 Driving (Four-Wheeler)</option>
+              <option value="cycling">🛵 Two-Wheeler / Motorcycle</option>
+              <option value="walking">🚶 Walking / Pedestrian</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Optimization Preference</label>
+            <select id="route-preference" class="select-field">
+              <option value="balanced" selected>⚖️ Balanced (Travel Time & Water Hazard)</option>
+              <option value="lowest_risk">🛡️ Lowest Flood Risk (Detour active closures & RUBs)</option>
+              <option value="fastest">⚡ Fastest Available Route</option>
+            </select>
+          </div>
+
+          <button id="btn-plan-route" class="btn-primary">Find Recommended Route</button>
+
+          <div class="disclaimer-box" style="margin-top:1rem;">
+            <b>Flood Route Warning:</b> Recommendations evaluate spatial proximity to active road closures, verified standing water, and chronic railway underpasses. Never drive through deep water.
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:1rem;">
+            <div class="card-title">Available Candidate Routes</div>
+            <div id="route-candidates-container">
+              <p style="color:var(--text-muted); font-size:0.9rem;">
+                Select origin and destination to calculate alternative routes scored against live waterlogging hazards.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. RAINFALL RISK PREDICTOR TAB -->
+    <section id="tab-predict" class="tab-pane">
+      <div style="max-width:800px; margin:0 auto;" class="card">
+        <div class="card-title">
+          <span>🌧️ Experimental Rainfall-to-Waterlogging Risk Estimator</span>
+          <span class="badge badge-mod">SYNTHETIC_EXPERIMENTAL</span>
+        </div>
+        
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Runs read-only inference against the trained machine learning pipeline (<code>models/rainfall/synthetic_rainfall_model.joblib</code>) using Nagpur locality drainage characteristics and antecedent precipitation windows.
+        </p>
+
+        <form id="rainfall-predict-form">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Nagpur Locality</label>
+              <select id="p-locality" class="select-field">
+                <option value="Manish Nagar (RUB Corridor)">Manish Nagar (RUB Corridor)</option>
+                <option value="Sitabuldi (Commercial)">Sitabuldi (Commercial)</option>
+                <option value="Dharampeth (West Nagpur)">Dharampeth (West Nagpur)</option>
+                <option value="Sadar (Residency Road)">Sadar (Residency Road)</option>
+                <option value="Dhantoli (Wardha Road)">Dhantoli (Wardha Road)</option>
+                <option value="Mankapur (Ring Road)">Mankapur (Ring Road)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Drainage Capacity Proxy [0.1 = Poor, 0.9 = Good]</label>
+              <input type="number" id="p-drainage-proxy" class="input-field" step="0.05" min="0.1" max="0.95" value="0.45" required>
+            </div>
+
+            <div class="form-group">
+              <label>Acute 1-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-1h" class="input-field" step="0.5" min="0" max="250" value="25.0" required>
+            </div>
+
+            <div class="form-group">
+              <label>Cumulative 3-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-3h" class="input-field" step="0.5" min="0" max="350" value="45.0" required>
+            </div>
+
+            <div class="form-group">
+              <label>Cumulative 6-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-6h" class="input-field" step="0.5" min="0" max="500" value="65.0" required>
+            </div>
+
+            <div class="form-group">
+              <label>Cumulative 24-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-24h" class="input-field" step="0.5" min="0" max="800" value="95.0" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Antecedent 72-Hour Soil Saturation Rainfall (mm)</label>
+              <input type="number" id="p-rain-72h" class="input-field" step="1.0" min="0" max="1200" value="130.0" required>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-run-prediction" class="btn-primary" style="margin-top:0.5rem;">Calculate Waterlogging Risk</button>
+        </form>
+
+        <div id="prediction-result-box" style="display:none; margin-top:1.25rem;" class="card"></div>
+      </div>
+    </section>
+
+    <!-- 5. IMAGE-BASED DETECTION TAB -->
+    <section id="tab-detect" class="tab-pane">
+      <div style="max-width:800px; margin:0 auto;" class="card">
+        <div class="card-title">
+          <span>📷 Roadway Surface Water Detection</span>
+          <span class="badge badge-low" style="background:rgba(56,189,248,0.2); color:#38bdf8;">YOLOv11 Nano</span>
+        </div>
+
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Upload a roadway or CCTV photo to detect visible standing water puddles. 
+          Uses <code>models/image/best.pt</code> without modifying weights.
+        </p>
+
+        <div class="dropzone" onclick="document.getElementById('image-upload-input').click();">
+          <p style="font-size:1.1rem; font-weight:600; margin-bottom:4px;">Drag & Drop or Click to Upload Image</p>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Supports JPG, PNG, WEBP (Max 10 MB)</p>
+          <input type="file" id="image-upload-input" accept="image/*" style="display:none;">
+        </div>
+
+        <div style="margin-top:1rem; display:flex; align-items:center; gap:1rem;">
+          <div style="flex:1;">
+            <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:4px;">Detection Confidence Threshold</label>
+            <input type="range" id="detect-conf-thresh" min="0.10" max="0.70" step="0.05" value="0.25" style="width:100%;" oninput="document.getElementById('conf-val').textContent = this.value;">
+          </div>
+          <span id="conf-val" style="font-weight:700; width:40px;">0.25</span>
+        </div>
+
+        <img id="image-preview" src="" alt="Preview" style="display:none; max-width:100%; max-height:350px; border-radius:8px; margin:1rem auto; border:1px solid var(--border-color);">
+
+        <button id="btn-run-detect" class="btn-primary" style="margin-top:1rem;">Run Optical Detection</button>
+
+        <div id="image-detect-results" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- 6. CITIZEN INCIDENT REPORTING TAB -->
+    <section id="tab-report" class="tab-pane">
+      <div style="max-width:700px; margin:0 auto;" class="card">
+        <div class="card-title">📢 Report Roadway Waterlogging</div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Submit real-time street waterlogging incidents. All submissions are assigned a tracking code and initially marked <b>UNVERIFIED</b> until inspected by municipal authorities.
+        </p>
+
+        <div id="report-feedback-box" style="display:none; margin-bottom:1rem;"></div>
+
+        <form id="citizen-report-form">
+          <div class="form-group">
+            <label>Location / Landmark Name *</label>
+            <input type="text" id="report-loc-name" class="input-field" placeholder="e.g. Near Law College Square, Dharampeth" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Latitude *</label>
+              <input type="number" id="report-lat" class="input-field" step="0.00001" placeholder="21.1458" value="21.1458" required>
+            </div>
+            <div class="form-group">
+              <label>Longitude *</label>
+              <input type="number" id="report-lon" class="input-field" step="0.00001" placeholder="79.0882" value="79.0882" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Incident Description *</label>
+            <textarea id="report-desc" class="textarea-field" rows="3" placeholder="Describe the water accumulation, vehicle stalling, or blocked drains..." required></textarea>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Estimated Severity</label>
+              <select id="report-sev" class="select-field">
+                <option value="Low">Low (Puddle / Minor Splashing)</option>
+                <option value="Moderate" selected>Moderate (Curb-level, slow traffic)</option>
+                <option value="High">High (Submerged wheels, vehicle stalls)</option>
+                <option value="Critical">Critical (Impassable / RUB Submerged)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Estimated Water Depth (cm, optional)</label>
+              <input type="number" id="report-depth" class="input-field" placeholder="e.g. 30" min="0" max="300">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Your Name (optional)</label>
+              <input type="text" id="report-name" class="input-field" placeholder="Citizen Name">
+            </div>
+            <div class="form-group">
+              <label>Incident Photo (optional)</label>
+              <input type="file" id="report-photo" class="input-field" accept="image/*">
+            </div>
+          </div>
+
+          <button type="submit" id="btn-submit-report" class="btn-primary" style="margin-top:0.5rem;">Submit Waterlogging Report</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 7. AUTHORITY REVIEW DASHBOARD TAB -->
+    <section id="tab-admin" class="tab-pane">
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">🛡️ Nagpur Municipal Corporation — Authority Review Dashboard</div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+          Restricted interface for reviewing, field-verifying, or rejecting citizen incident reports.
+        </p>
+
+        <div style="display:flex; gap:0.75rem; align-items:center; max-width:550px;">
+          <input type="password" id="admin-token-input" class="input-field" placeholder="Enter administrative secret token..." value="waterwatch_admin_secret_token_2026">
+          <button id="btn-admin-login" class="btn-primary" style="width:auto; white-space:nowrap;">Access Review Panel</button>
+        </div>
+      </div>
+
+      <div id="admin-panel-content" style="display:none;" class="card">
+        <div class="card-title">Pending Citizen Submissions</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                <th style="padding:0.5rem;">Tracking ID</th>
+                <th style="padding:0.5rem;">Location & Description</th>
+                <th style="padding:0.5rem;">Severity</th>
+                <th style="padding:0.5rem;">Status</th>
+                <th style="padding:0.5rem;">Photo</th>
+                <th style="padding:0.5rem;">Review Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-reports-table-body">
+              <tr><td colspan="6" style="padding:1rem; text-align:center; color:var(--text-muted);">Loading reports...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. MODEL & DATA STATUS TAB -->
+    <section id="tab-status" class="tab-pane">
+      <div style="max-width:900px; margin:0 auto;">
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div class="card-title">ℹ️ System Status & Machine Learning Provenance</div>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            Transparent audit of model readiness, data sources, and operational restrictions across the WaterWatch AI system.
+          </p>
+        </div>
+
+        <div id="model-status-cards">
+          <div style="color:var(--text-muted); text-align:center; padding:2rem;">Loading model diagnostics...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Application JS Modules -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/map.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
