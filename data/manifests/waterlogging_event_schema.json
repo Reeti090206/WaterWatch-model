@@ -1,99 +1,119 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "WaterWatchAI_WaterloggingEvent",
+  "title": "WaterWatchAI_WaterloggingEventRecord",
+  "description": "Standardized schema for recording ground-truth municipal waterlogging events and verified negative control observations.",
   "type": "object",
   "required": [
     "event_id",
-    "timestamp_start",
+    "location_id",
     "latitude",
     "longitude",
-    "district",
-    "waterlogged_label",
-    "verification_status"
+    "event_start_time",
+    "waterlogging_observed",
+    "evidence_type",
+    "evidence_source",
+    "verification_status",
+    "annotator_id"
   ],
   "properties": {
     "event_id": {
       "type": "string",
-      "description": "Unique event identifier (e.g., WW-NGP-2024-001)"
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Unique event identifier (e.g., WW-NGP-2024-001 or CTRL-PUN-2024-042)"
     },
-    "timestamp_start": {
+    "location_id": {
       "type": "string",
-      "format": "date-time",
-      "description": "ISO 8601 timestamp of incident onset (e.g., 2024-07-21T14:30:00+05:30)"
-    },
-    "timestamp_end": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "format": "date-time",
-      "description": "ISO 8601 timestamp when water completely receded"
+      "description": "Station ID, municipal ward, or designated junction identifier (e.g., NGP-WARD-04, NGP-SITABULDI)"
     },
     "latitude": {
       "type": "number",
       "minimum": 15.0,
-      "maximum": 23.0,
-      "description": "WGS-84 Latitude within Maharashtra"
+      "maximum": 23.5,
+      "description": "WGS-84 Latitude in decimal degrees (calibrated for Maharashtra State bounds: 15.0 to 23.5)"
     },
     "longitude": {
       "type": "number",
       "minimum": 72.0,
-      "maximum": 82.0,
-      "description": "WGS-84 Longitude within Maharashtra"
+      "maximum": 82.5,
+      "description": "WGS-84 Longitude in decimal degrees (calibrated for Maharashtra State bounds: 72.0 to 82.5)"
     },
-    "location_name": {
+    "event_start_time": {
       "type": "string",
-      "description": "Specific landmark or junction (e.g., Sitabuldi Flyover, Nagpur)"
+      "format": "date-time",
+      "description": "ISO 8601 onset timestamp (e.g., 2024-07-21T14:30:00+05:30). Must include date, time, and timezone offset."
     },
-    "district": {
+    "timestamp_start": {
       "type": "string",
-      "description": "District name (e.g., Nagpur, Pune, Mumbai)"
+      "format": "date-time",
+      "description": "Alias for event_start_time."
+    },
+    "event_end_time": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 water recession timestamp (e.g., 2024-07-21T18:00:00+05:30). Null if duration is ongoing or unrecorded."
+    },
+    "waterlogging_observed": {
+      "type": "integer",
+      "enum": [0, 1],
+      "description": "Binary outcome label. 1 = Waterlogging observed. 0 = Verified absence of waterlogging (active negative control observation). DO NOT set to 0 merely because no incident was filed."
     },
     "waterlogged_label": {
       "type": "integer",
-      "enum": [
-        0,
-        1
-      ],
-      "description": "1 = Waterlogging occurred, 0 = Verified non-waterlogged control"
+      "enum": [0, 1],
+      "description": "Alias for waterlogging_observed."
     },
     "severity_level": {
       "type": "string",
-      "enum": [
-        "None",
-        "Low",
-        "Moderate",
-        "Severe",
-        "Critical"
-      ],
-      "description": "Severity of disruption"
+      "enum": ["None", "Low", "Moderate", "Severe", "Critical", "Unknown"],
+      "default": "Unknown",
+      "description": "Assessed physical severity: None (for verified controls), Low (<15cm, slow traffic), Moderate (15-30cm, lane closures), Severe (30-60cm, vehicle stall), Critical (>60cm, structural hazard/evacuation), Unknown."
     },
     "water_depth_cm": {
-      "type": [
-        "number",
-        "null"
-      ],
-      "description": "Measured or estimated flood water depth in centimeters"
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 500.0,
+      "description": "Physically measured or staff-gauge recorded flood water depth in centimeters. Null if not objectively measured."
     },
-    "source_type": {
+    "evidence_type": {
       "type": "string",
       "enum": [
-        "Municipal Control Room",
-        "Traffic Police Log",
-        "Citizen Disaster App",
-        "Verified Media Report",
-        "Field Inspection"
+        "Municipal_Log",
+        "Traffic_Police_Log",
+        "Physical_Inspection",
+        "CCTV_Feed",
+        "Citizen_Report_Verified",
+        "Automated_Sensor",
+        "Media_Verified",
+        "Field_Survey"
       ],
-      "description": "Source authority"
+      "description": "Primary empirical evidence modality."
+    },
+    "evidence_source": {
+      "type": "string",
+      "description": "Originating organization or authority (e.g., Nagpur Municipal Corporation, Pune Traffic Police, IMD Observer)."
     },
     "verification_status": {
       "type": "string",
       "enum": [
         "Verified_Official",
         "Verified_Field",
-        "Unverified"
+        "Unverified",
+        "Disputed",
+        "Rejected"
       ],
-      "description": "Verification level"
+      "description": "Quality tier. Only records with 'Verified_Official' or 'Verified_Field' should enter supervised training."
+    },
+    "image_path": {
+      "type": ["string", "null"],
+      "description": "Relative or absolute filepath to photographic evidence, if available. Null if unrecorded."
+    },
+    "annotator_id": {
+      "type": "string",
+      "description": "Identifier of annotator, data ingestion operator, or official field inspector."
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Supplementary context (e.g., drainage pump failure, blocked stormwater culvert, underpass location)."
     }
   }
 }

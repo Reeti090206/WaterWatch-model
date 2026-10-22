@@ -119,22 +119,25 @@ def haversine_distance_km(lat1, lon1, lat2, lon2):
 
 
 def generate_event_schema_and_template():
-    """Writes the JSON schema and a CSV template for collecting future verified events."""
+    """Ensures the standardized 15-field JSON schema and template exist."""
     schema_path = MANIFESTS_DIR / "waterlogging_event_schema.json"
-    with open(schema_path, "w", encoding="utf-8") as f:
-        json.dump(EVENT_SCHEMA, f, indent=2)
-    print(f"Generated event JSON schema: {schema_path}")
+    if not schema_path.exists():
+        with open(schema_path, "w", encoding="utf-8") as f:
+            json.dump(EVENT_SCHEMA, f, indent=2)
+        print(f"Generated event JSON schema: {schema_path}")
 
-    # Generate CSV template
-    template_cols = [
-        "event_id", "timestamp_start", "timestamp_end", "latitude", "longitude",
-        "location_name", "district", "waterlogged_label", "severity_level",
-        "water_depth_cm", "source_type", "verification_status"
-    ]
-    template_df = pd.DataFrame(columns=template_cols)
     template_path = MANIFESTS_DIR / "waterlogging_event_template.csv"
-    template_df.to_csv(template_path, index=False)
-    print(f"Generated event collection template: {template_path}")
+    if not template_path.exists():
+        template_cols = [
+            "event_id", "location_id", "latitude", "longitude",
+            "event_start_time", "event_end_time", "waterlogging_observed",
+            "severity_level", "water_depth_cm", "evidence_type",
+            "evidence_source", "verification_status", "image_path",
+            "annotator_id", "notes"
+        ]
+        template_df = pd.DataFrame(columns=template_cols)
+        template_df.to_csv(template_path, index=False)
+        print(f"Generated event collection template: {template_path}")
 
 
 def match_events_to_rainfall(events_csv_path, max_station_dist_km=25.0):
@@ -151,6 +154,16 @@ def match_events_to_rainfall(events_csv_path, max_station_dist_km=25.0):
         print("Event file is empty.")
         return None
 
+    # Column alias harmonization
+    col_map = {
+        "timestamp_start": "event_start_time",
+        "timestamp_end": "event_end_time",
+        "waterlogged_label": "waterlogging_observed",
+        "location_name": "location_id",
+        "source_type": "evidence_type"
+    }
+    events_df = events_df.rename(columns=col_map)
+
     daily_path = PROCESSED_DIR / "rainfall_daily_features.csv"
     if not daily_path.exists():
         raise FileNotFoundError("Missing processed rainfall daily features.")
@@ -166,7 +179,7 @@ def match_events_to_rainfall(events_csv_path, max_station_dist_km=25.0):
     for _, event in events_df.iterrows():
         e_lat = event["latitude"]
         e_lon = event["longitude"]
-        e_time = pd.to_datetime(event["timestamp_start"])
+        e_time = pd.to_datetime(event["event_start_time"])
         e_date = e_time.date()
 
         # Find closest station
@@ -186,6 +199,8 @@ def match_events_to_rainfall(events_csv_path, max_station_dist_km=25.0):
                 r_row = st_data.iloc[0].to_dict()
                 r_row.update(event.to_dict())
                 r_row["station_distance_km"] = round(min_dist, 2)
+                # Keep waterlogged_label aligned with waterlogging_observed for downstream training
+                r_row["waterlogged_label"] = event.get("waterlogging_observed", event.get("waterlogged_label"))
                 matched_records.append(r_row)
 
     if not matched_records:

@@ -14,6 +14,8 @@ dataset/
 *.csv
 !reports/*.csv
 !data/processed/*_sample.csv
+!data/manifests/*.csv
+!waterwatch_ai_nagpur_localities*.csv
 
 # Keep directory structure with .gitkeep
 !.gitkeep

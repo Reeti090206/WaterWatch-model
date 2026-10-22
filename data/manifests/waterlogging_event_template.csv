@@ -1,0 +1,3 @@
+event_id,location_id,latitude,longitude,event_start_time,event_end_time,waterlogging_observed,severity_level,water_depth_cm,evidence_type,evidence_source,verification_status,image_path,annotator_id,notes
+SAMPLE-POS-001,NGP-SITABULDI-01,21.1458,79.0882,2024-07-22T14:30:00+05:30,2024-07-22T18:00:00+05:30,1,Severe,45.0,Municipal_Log,Nagpur Municipal Corporation,Verified_Official,data/raw/images/sample_pos.jpg,OP-NMC-104,Sitabuldi underpass waterlogged following 80mm burst; traffic diverted
+SAMPLE-CTRL-002,NGP-DHARAMPETH-02,21.1400,79.0600,2024-07-22T15:00:00+05:30,2024-07-22T18:00:00+05:30,0,None,,Physical_Inspection,Nagpur Traffic Police,Verified_Official,,OP-NMC-104,Verified elevated road segment with clear drainage; zero ponding observed

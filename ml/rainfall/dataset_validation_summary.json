@@ -1,0 +1,124 @@
+{
+  "source_name": "waterwatch_ai_nagpur_localities_sample.csv",
+  "total_records": 2000,
+  "is_valid": true,
+  "critical_errors": [],
+  "warnings": [
+    "Found 35 (timestamp, location_id) groups with conflicting outcome labels (both 0 and 1)."
+  ],
+  "schema": {
+    "columns_present": [
+      "timestamp",
+      "location_id",
+      "location_name",
+      "rainfall_1h_mm",
+      "rainfall_3h_mm",
+      "rainfall_6h_mm",
+      "rainfall_24h_mm",
+      "rainfall_prev_72h_mm",
+      "drainage_capacity_proxy",
+      "waterlogging_observed",
+      "severity"
+    ],
+    "missing_expected_columns": [],
+    "unexpected_columns": []
+  },
+  "missing_values": {
+    "timestamp": 0,
+    "location_id": 0,
+    "location_name": 0,
+    "rainfall_1h_mm": 0,
+    "rainfall_3h_mm": 0,
+    "rainfall_6h_mm": 0,
+    "rainfall_24h_mm": 0,
+    "rainfall_prev_72h_mm": 0,
+    "drainage_capacity_proxy": 0,
+    "waterlogging_observed": 0,
+    "severity": 0
+  },
+  "duplicates": {
+    "exact_row_duplicates": 0,
+    "timestamp_location_duplicates": 106,
+    "conflicting_outcome_groups": 35
+  },
+  "ranges": {
+    "rainfall_1h_mm": {
+      "min": 0.0,
+      "max": 54.8,
+      "mean": 3.59
+    },
+    "rainfall_3h_mm": {
+      "min": 0.1,
+      "max": 59.1,
+      "mean": 11.14
+    },
+    "rainfall_6h_mm": {
+      "min": 1.4,
+      "max": 79.4,
+      "mean": 22.24
+    },
+    "rainfall_24h_mm": {
+      "min": 3.8,
+      "max": 113.4,
+      "mean": 42.39
+    },
+    "rainfall_prev_72h_mm": {
+      "min": 12.4,
+      "max": 206.3,
+      "mean": 79.86
+    },
+    "drainage_capacity_proxy": {
+      "min": 0.12,
+      "max": 0.95,
+      "mean": 0.59
+    }
+  },
+  "consistency": {
+    "violations_1h_gt_3h": 0,
+    "violations_3h_gt_6h": 0,
+    "violations_6h_gt_24h": 0,
+    "monotonic_integrity_pass": true
+  },
+  "class_distribution": {
+    "class_0_negative_count": 1537,
+    "class_1_positive_count": 463,
+    "positive_class_ratio": 0.2315
+  },
+  "leakage_audit": {
+    "severity_is_leakage": true,
+    "severity_policy": "EXCLUDE - 'severity' is directly derived from waterlogging event and rainfall intensity threshold.",
+    "location_id_policy": "EXCLUDE - Location IDs must not be used as one-hot shortcuts to prevent memorizing local topology.",
+    "drainage_proxy_policy": "SYNTHETIC PROXY - 'drainage_capacity_proxy' is an illustrative synthetic index, not physical measured drainage infrastructure.",
+    "data_provenance": "SYNTHETIC DEMONSTRATION DATA - Rainfall values, drainage proxy, and waterlogging outcomes are synthetically generated for Nagpur localities. They are NOT municipal observations."
+  },
+  "temporal_coverage": {
+    "min_timestamp": "2025-06-01 01:00:00",
+    "max_timestamp": "2025-09-28 20:00:00",
+    "unique_timestamps": 1443,
+    "is_monotonic": true
+  },
+  "severity_categories": [
+    "moderate",
+    "low",
+    "none",
+    "high"
+  ],
+  "severity_crosstab": {
+    "high": {
+      "0": 0,
+      "1": 43
+    },
+    "low": {
+      "0": 0,
+      "1": 276
+    },
+    "moderate": {
+      "0": 0,
+      "1": 144
+    },
+    "none": {
+      "0": 1537,
+      "1": 0
+    }
+  }
+}
