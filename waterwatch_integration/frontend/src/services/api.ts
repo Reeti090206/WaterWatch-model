@@ -124,6 +124,10 @@ class ApiService {
   public async getModelsStatus(): Promise<any> {
     return this.request<any>("/models/status");
   }
+
+  public async getPredictionTable(rainMultiplier: number = 1.0): Promise<any> {
+    return this.request<any>(`/predictions/table?rain_multiplier=${rainMultiplier}`);
+  }
 }
 
 export const api = new ApiService();
