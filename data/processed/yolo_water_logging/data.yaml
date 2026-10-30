@@ -1,4 +1,4 @@
-path: D:/PROJECTS/WaterWatch (ML model)/data/processed/yolo_water_logging
+path: D:/WaterWatch (ML model)/data/processed/yolo_water_logging
 train: images/train
 val: images/val
 test: images/test

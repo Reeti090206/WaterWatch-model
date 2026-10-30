@@ -75,9 +75,12 @@ def test_yolo_bounding_box_format():
     assert len(lbl_files) > 0
 
     checked_boxes = 0
-    for lf in lbl_files[:20]:
+    checked_files = 0
+    for lf in lbl_files:
         with open(lf, "r", encoding="utf-8") as f:
             lines = [l.strip() for l in f if l.strip()]
+            if not lines:
+                continue
             for line in lines:
                 parts = line.split()
                 assert len(parts) == 5, f"Invalid YOLO bbox format in {lf.name}: {line}"
@@ -89,6 +92,9 @@ def test_yolo_bounding_box_format():
                 assert 0.0 < w <= 1.0, f"width out of bounds in {lf.name}: {w}"
                 assert 0.0 < h <= 1.0, f"height out of bounds in {lf.name}: {h}"
                 checked_boxes += 1
+            checked_files += 1
+            if checked_files >= 20:
+                break
 
     assert checked_boxes > 0, "No bounding boxes were checked"
 

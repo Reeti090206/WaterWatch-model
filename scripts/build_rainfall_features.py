@@ -160,6 +160,11 @@ def build_daily_features():
 
     df["experimental_risk_level"] = df["experimental_risk_score"].apply(risk_level)
 
+    # Standardize explicit accumulation column aliases for 24h, 48h, 72h
+    df["rainfall_24h_mm"] = df["rainfall_mm"]
+    df["rainfall_48h_mm"] = df["rainfall_2day_total_mm"]
+    df["rainfall_72h_mm"] = df["rainfall_3day_total_mm"]
+
     # Clean intermediate columns
     drop_cols = ["prev_date", "days_since_prev", "prev2_date", "days_since_prev2"]
     df = df.drop(columns=[c for c in drop_cols if c in df.columns])
@@ -175,7 +180,7 @@ def build_daily_features():
 
 def build_hourly_features():
     print("\n" + "=" * 60)
-    print("BUILDING HOURLY ROLLING FEATURES")
+    print("BUILDING HOURLY ROLLING FEATURES (1h, 3h, 6h, 24h, 72h)")
     print("=" * 60)
 
     hourly_path = PROCESSED_DIR / "rainfall_hourly_observed.csv"
@@ -188,43 +193,45 @@ def build_hourly_features():
     df["timestamp_ist"] = pd.to_datetime(df["timestamp_ist"])
     df = df.sort_values(by=["station_name", "timestamp_ist"]).reset_index(drop=True)
 
-    # Rolling 3h, 6h, 12h, 24h
+    # Rolling 1h, 3h, 6h, 24h, 72h
     # RULE: Calculate rolling features ONLY when observation window is sufficiently covered!
     # If telemetry is missing, we must NOT falsely assume 0.0!
-    print("Calculating rolling temporal windows (3h, 6h, 12h, 24h)...")
+    print("Calculating rolling temporal windows (1h, 3h, 6h, 24h, 72h)...")
     
-    # We work station by station for valid measured records
-    # To handle irregular telemetry, we use time-based rolling window on stations with measurements
     measured_df = df[df["is_measured"]].copy()
     measured_df = measured_df.set_index("timestamp_ist")
 
-    # Rolling calculations per station
+    # Rolling calculations per station with realistic minimum observation requirements
     grouped = measured_df.groupby("station_name")
     
-    # Rolling 3h sum
-    measured_df["rolling_3h_mm"] = grouped["rainfall_mm"].rolling("3h", min_periods=1).sum().values
-    # Rolling 6h sum
-    measured_df["rolling_6h_mm"] = grouped["rainfall_mm"].rolling("6h", min_periods=1).sum().values
-    # Rolling 12h sum
-    measured_df["rolling_12h_mm"] = grouped["rainfall_mm"].rolling("12h", min_periods=1).sum().values
-    # Rolling 24h sum
-    measured_df["rolling_24h_mm"] = grouped["rainfall_mm"].rolling("24h", min_periods=1).sum().values
+    # 1h observed
+    measured_df["rainfall_1h_mm"] = measured_df["rainfall_mm"]
+    # Rolling 3h sum (minimum 2 valid observations required)
+    measured_df["rolling_3h_mm"] = grouped["rainfall_mm"].rolling("3h", min_periods=2).sum().values
+    # Rolling 6h sum (minimum 4 valid observations required)
+    measured_df["rolling_6h_mm"] = grouped["rainfall_mm"].rolling("6h", min_periods=4).sum().values
+    # Rolling 12h sum (minimum 8 valid observations required)
+    measured_df["rolling_12h_mm"] = grouped["rainfall_mm"].rolling("12h", min_periods=8).sum().values
+    # Rolling 24h sum (minimum 16 valid observations required)
+    measured_df["rolling_24h_mm"] = grouped["rainfall_mm"].rolling("24h", min_periods=16).sum().values
+    # Rolling 72h sum (minimum 48 valid observations required)
+    measured_df["rolling_72h_mm"] = grouped["rainfall_mm"].rolling("72h", min_periods=48).sum().values
 
     measured_df = measured_df.reset_index()
 
     # Experimental hourly risk index
     # IMD hourly definitions: > 15.5mm in 1 hour = intense localized cloudburst / waterlogging risk
     def hourly_risk(row):
-        r1 = row.get("rainfall_mm", 0.0)
-        r3 = row.get("rolling_3h_mm", 0.0)
-        r24 = row.get("rolling_24h_mm", 0.0)
+        r1 = row.get("rainfall_1h_mm", 0.0)
+        r3 = row.get("rolling_3h_mm", np.nan)
+        r24 = row.get("rolling_24h_mm", np.nan)
         
         # Acute 1-hour
-        score_1h = min(0.50, (r1 / 25.0) * 0.50)
+        score_1h = min(0.50, (r1 / 25.0) * 0.50) if pd.notna(r1) else 0.0
         # Acute 3-hour
-        score_3h = min(0.30, (r3 / 50.0) * 0.30)
+        score_3h = min(0.30, (r3 / 50.0) * 0.30) if pd.notna(r3) else 0.0
         # 24-hour total
-        score_24h = min(0.20, (r24 / 100.0) * 0.20)
+        score_24h = min(0.20, (r24 / 100.0) * 0.20) if pd.notna(r24) else 0.0
         return round(float(min(1.0, score_1h + score_3h + score_24h)), 4)
 
     measured_df["experimental_risk_score"] = measured_df.apply(hourly_risk, axis=1)

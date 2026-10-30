@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WaterWatchAI_WaterloggingImageAnnotationRecord",
+  "description": "Standardized schema for image-level visual waterlogging annotations (bounding boxes, classifications, segmentation masks).",
+  "type": "object",
+  "required": [
+    "image_id",
+    "image_path",
+    "task_type",
+    "waterlogging_visible",
+    "annotator_id",
+    "verification_status"
+  ],
+  "properties": {
+    "image_id": {
+      "type": "string",
+      "description": "Unique image identifier"
+    },
+    "image_path": {
+      "type": "string",
+      "description": "Filepath to the image"
+    },
+    "timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 capture timestamp if extracted from EXIF or metadata, else null"
+    },
+    "latitude": {
+      "type": ["number", "null"],
+      "description": "Capture latitude if GPS EXIF tag is present, else null"
+    },
+    "longitude": {
+      "type": ["number", "null"],
+      "description": "Capture longitude if GPS EXIF tag is present, else null"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": ["object_detection", "image_classification", "semantic_segmentation"]
+    },
+    "waterlogging_visible": {
+      "type": "integer",
+      "enum": [0, 1],
+      "description": "1 = Waterlogging visible in image, 0 = Dry scene / negative visual control"
+    },
+    "annotated_objects_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of bounding boxes or segmented instances"
+    },
+    "annotation_format": {
+      "type": "string",
+      "enum": ["yolo_bbox", "binary_mask_png", "coco_json", "none"]
+    },
+    "annotation_file_path": {
+      "type": ["string", "null"],
+      "description": "Path to label .txt or mask .png"
+    },
+    "apparent_severity_qualitative": {
+      "type": "string",
+      "enum": ["Dry", "Minor_Puddling", "Significant_Ponding", "Deep_Inundation", "Unspecified"],
+      "default": "Unspecified",
+      "description": "Qualitative visual appearance. NOT an objective measurement of depth in cm."
+    },
+    "depth_measurable": {
+      "type": "boolean",
+      "default": false,
+      "description": "True ONLY if a calibrated physical water depth gauge/staff is visible in frame."
+    },
+    "annotator_id": {
+      "type": "string",
+      "description": "Identifier of annotator"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": ["Verified", "Unverified", "Rejected"]
+    },
+    "notes": {
+      "type": ["string", "null"]
+    }
+  }
+}

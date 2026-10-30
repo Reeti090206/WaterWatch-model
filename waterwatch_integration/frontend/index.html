@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaterWatch AI — Real-Time Nagpur Waterlogging & Route Recommendation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Left Vertical Sidebar -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#00d4ff" stroke="#00d4ff" stroke-width="2">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+        <div class="sidebar-brand-text">
+          <h2>Nagpur WaterWatch</h2>
+          <span>Smart Water Monitor</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-item active" data-tab="tab-home" id="nav-btn-home">
+          <span class="sidebar-icon">💧</span>
+          <span class="sidebar-label">Home</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-live-demo" id="nav-btn-live-demo">
+          <span class="sidebar-icon">⚡</span>
+          <span class="sidebar-label">Live AI Demo</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-dashboard">
+          <span class="sidebar-icon">📈</span>
+          <span class="sidebar-label">Live Dashboard</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-map">
+          <span class="sidebar-icon">🗺️</span>
+          <span class="sidebar-label">Waterlogging Map</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-routes">
+          <span class="sidebar-icon">🧭</span>
+          <span class="sidebar-label">Safe Route Planner</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-predict">
+          <span class="sidebar-icon">⚠️</span>
+          <span class="sidebar-label">Predictions</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-detect">
+          <span class="sidebar-icon">📷</span>
+          <span class="sidebar-label">Image Detection</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-report">
+          <span class="sidebar-icon">📄</span>
+          <span class="sidebar-label">Report Incident</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-admin">
+          <span class="sidebar-icon">🛡️</span>
+          <span class="sidebar-label">Authority Dashboard</span>
+        </button>
+        <button class="sidebar-item" data-tab="tab-status">
+          <span class="sidebar-icon">ℹ️</span>
+          <span class="sidebar-label">Model Status</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-role-badge">
+          <span class="role-btn active">Citizen</span>
+          <span class="role-btn">Auth</span>
+          <span class="role-btn">Admin</span>
+        </div>
+        <div class="sidebar-status">
+          <span class="status-dot"></span>
+          <span>System Live</span>
+          <span class="badge badge-normal" style="font-size:0.65rem; margin-left:auto;">24/7 IoT</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area offset by sidebar -->
+    <main class="main-content">
+
+      <!-- 0. HOME TAB (Hero Image Background) -->
+      <section id="tab-home" class="tab-pane active">
+        <div class="hero-section">
+          <div class="hero-bg" style="background: url('/static/hero-bg.jpg') center center / cover no-repeat;"></div>
+          <div class="hero-content">
+            <div class="hero-glass">
+              <div class="hero-badge">
+                <span>💧 REAL-TIME WATERLOGGING MONITORING &amp; SMART NAVIGATION</span>
+              </div>
+              <h1 class="hero-title">Nagpur WaterWatch</h1>
+              <div class="hero-tagline">Predict. Detect. Navigate.</div>
+              <p class="hero-desc">
+                A real-time IoT and predictive waterlogging monitoring system combined with intelligent route recommendation to ensure safer citizen travel across vulnerable roads in Nagpur.
+              </p>
+              <div class="hero-actions">
+                <button class="btn-primary" onclick="window.switchTab('tab-live-demo')" style="background:linear-gradient(135deg, #0ea5e9, #10b981); border-color:#38bdf8; box-shadow:0 0 24px rgba(14, 165, 233, 0.45); font-weight:600;">
+                  <span>⚡ Live AI Demo</span>
+                </button>
+                <button class="btn-primary" onclick="window.switchTab('tab-dashboard')">
+                  <span>📖 Live Dashboard &amp; Map</span>
+                </button>
+                <button class="btn-dark" onclick="window.switchTab('tab-routes')">
+                  <span>🧭 Safe Route Planner</span>
+                </button>
+                <button class="btn-amber" onclick="window.switchTab('tab-report')">
+                  <span>⚠️ Report Waterlogging</span>
+                </button>
+              </div>
+
+              <!-- Scroll Indicator -->
+              <div style="margin-top:20px;">
+                <a href="#home-overview-html" style="color:#00d4ff; font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                  <span>Scroll down for operational modules &amp; telemetry ↓</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scrollable Body Below Hero -->
+        <div id="home-overview-html" style="padding:40px 24px 60px 24px; display:flex; flex-direction:column; gap:32px;">
+          
+          <!-- KPI Strip -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:16px;">
+            <div class="card" style="padding:18px 20px; border-left:3px solid #00d4ff;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">Urban IoT Telemetry</span>
+              <div style="font-size:1.6rem; fontWeight:800; color:#fff; margin-top:4px;">8 Active Sensors</div>
+              <span style="font-size:0.72rem; color:#10b981;">● 24/7 Live Monitoring</span>
+            </div>
+            <div class="card" style="padding:18px 20px; border-left:3px solid #10b981;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">MobileNetV3 Accuracy</span>
+              <div style="font-size:1.6rem; fontWeight:800; color:#10b981; margin-top:4px;">100.0%</div>
+              <span style="font-size:0.72rem; color:var(--text-muted);">Held-Out Test Set (N=79)</span>
+            </div>
+            <div class="card" style="padding:18px 20px; border-left:3px solid #2ed573;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">Dry Road False Alarms</span>
+              <div style="font-size:1.6rem; fontWeight:800; color:#2ed573; margin-top:4px;">0 / 48</div>
+              <span style="font-size:0.72rem; color:var(--text-muted);">IndiaScene365 Negative Controls</span>
+            </div>
+            <div class="card" style="padding:18px 20px; border-left:3px solid #ffa502;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">Monitored Underpasses</span>
+              <div style="font-size:1.6rem; fontWeight:800; color:#ffa502; margin-top:4px;">10 Critical Hotspots</div>
+              <span style="font-size:0.72rem; color:var(--text-muted);">Nagpur Municipal Corporation</span>
+            </div>
+          </div>
+
+          <!-- Core Modules Grid -->
+          <div>
+            <div style="margin-bottom:16px;">
+              <h2 style="font-size:1.25rem; font-weight:800; color:#fff;">Core System Modules &amp; Live Capabilities</h2>
+              <p style="font-size:0.85rem; color:var(--text-muted);">Access direct operational controls, live inference tools, and real-time navigation pipelines:</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+              <div class="card" style="padding:22px; cursor:pointer;" onclick="window.switchTab('tab-live-demo')">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                  <span style="font-size:1.5rem;">⚡</span>
+                  <span class="badge badge-low">FEATURED</span>
+                </div>
+                <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:6px;">⚡ Live AI Evaluator Demo</h3>
+                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:14px;">
+                  Run live optical waterlogging detection on sample or custom images (MobileNetV3 + YOLOv11), rainfall simulations, and route recommendations.
+                </p>
+                <div style="color:#00d4ff; font-size:0.82rem; font-weight:600;">Launch Interactive Demo →</div>
+              </div>
+
+              <div class="card" style="padding:22px; cursor:pointer;" onclick="window.switchTab('tab-dashboard')">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                  <span style="font-size:1.5rem;">📈</span>
+                  <span class="badge badge-low" style="color:#10b981; background:rgba(16,185,129,0.15);">TELEMETRY</span>
+                </div>
+                <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:6px;">📈 Live Monitoring Dashboard</h3>
+                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:14px;">
+                  Real-time IoT sensor telemetry, active hazard advisories, weather feeds, and municipal incident verification queues across Nagpur.
+                </p>
+                <div style="color:#10b981; font-size:0.82rem; font-weight:600;">Open Live Dashboard →</div>
+              </div>
+
+              <div class="card" style="padding:22px; cursor:pointer;" onclick="window.switchTab('tab-routes')">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                  <span style="font-size:1.5rem;">🧭</span>
+                  <span class="badge badge-low">NAVIGATION</span>
+                </div>
+                <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:6px;">🧭 Safe Route Planner</h3>
+                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:14px;">
+                  Google Maps-style smart navigation that factors in submerged underpasses, chronic flood hotspots, and active road closures to recommend safe routes.
+                </p>
+                <div style="color:#38bdf8; font-size:0.82rem; font-weight:600;">Calculate Safe Route →</div>
+              </div>
+
+              <div class="card" style="padding:22px; cursor:pointer;" onclick="window.switchTab('tab-predict')">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                  <span style="font-size:1.5rem;">⚠️</span>
+                  <span class="badge badge-high">PREDICTIVE</span>
+                </div>
+                <h3 style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:6px;">⚠️ Predictive Risk Engine</h3>
+                <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:14px;">
+                  Antecedent rainfall curve analytics, rolling multi-hour storm progression forecasting, and drainage clearance simulation per Nagpur municipal ward.
+                </p>
+                <div style="color:#f5a623; font-size:0.82rem; font-weight:600;">Explore Predictions →</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hotspots Overview -->
+          <div class="card" style="padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div>
+                <h3 style="font-size:1.05rem; font-weight:700; color:#fff;">🌊 Monitored Nagpur Railway Underpasses &amp; Hotspots</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Key low-lying depression basins tracked in real-time by municipal sensors:</p>
+              </div>
+              <button class="btn-secondary" onclick="window.switchTab('tab-map')">View On Map →</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px;">
+              <div style="padding:14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid #ff4757;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <strong style="color:#fff; font-size:0.88rem;">Pardi Naka Underpass</strong>
+                  <span class="badge badge-high" style="font-size:0.65rem;">SEVERE RISK</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Depression basin, submersible pumps restricted</div>
+              </div>
+
+              <div style="padding:14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid #f59e0b;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <strong style="color:#fff; font-size:0.88rem;">Ambazari Lake Road</strong>
+                  <span class="badge badge-low" style="font-size:0.65rem;">MODERATE</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Overflow runoff from lake spillway</div>
+              </div>
+
+              <div style="padding:14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid #f59e0b;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <strong style="color:#fff; font-size:0.88rem;">Pratap Nagar Square</strong>
+                  <span class="badge badge-low" style="font-size:0.65rem;">MODERATE</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Low grade intersection stormwater ponding</div>
+              </div>
+
+              <div style="padding:14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid #10b981;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <strong style="color:#fff; font-size:0.88rem;">Civil Lines VIP Road</strong>
+                  <span class="badge badge-low" style="color:#10b981; font-size:0.65rem;">NORMAL</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Elevated gradient, rapid stormwater clearance</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Home Footer Navigation -->
+          <footer style="margin-top:20px; padding:20px 0; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:0.75rem; color:var(--text-muted);">
+            <div>
+              <strong style="color:#fff;">Nagpur WaterWatch AI</strong> — Municipal Real-Time IoT &amp; Optical Detection System
+            </div>
+            <div style="display:flex; gap:16px;">
+              <a href="#" onclick="window.switchTab('tab-live-demo'); return false;" style="color:#00d4ff;">⚡ Live AI Demo</a>
+              <a href="#" onclick="window.switchTab('tab-dashboard'); return false;" style="color:var(--text-muted);">Dashboard</a>
+              <a href="#" onclick="window.switchTab('tab-routes'); return false;" style="color:var(--text-muted);">Route Planner</a>
+              <a href="#" onclick="window.switchTab('tab-status'); return false;" style="color:var(--text-muted);">Model Provenance</a>
+            </div>
+          </footer>
+
+        </div>
+      </section>
+
+      <!-- 1. DASHBOARD TAB -->
+      <section id="tab-dashboard" class="tab-pane">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Incidents</span>
+          <div class="kpi-val" id="kpi-total-incidents">--</div>
+          <span class="kpi-meta">Nagpur Municipal Jurisdiction</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Verified Floods</span>
+          <div class="kpi-val" style="color:var(--accent-emerald);" id="kpi-verified">--</div>
+          <span class="kpi-meta">NMC / Police Confirmed</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Citizen Reports</span>
+          <div class="kpi-val" style="color:var(--accent-cyan);" id="kpi-unverified">--</div>
+          <span class="kpi-meta">Awaiting Field Review</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Active Road Closures</span>
+          <div class="kpi-val" style="color:var(--accent-rose);" id="kpi-closures">--</div>
+          <span class="kpi-meta">Detours Active</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Chronic Hotspots</span>
+          <div class="kpi-val" style="color:var(--accent-indigo);" id="kpi-hotspots">--</div>
+          <span class="kpi-meta">Historical Railway Underpasses & Low Points</span>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+        <div class="card">
+          <div class="card-title">
+            <span>🌦️ Live Nagpur Weather Feed</span>
+            <span class="badge badge-low" style="font-size:0.7rem;">Open-Meteo Integration</span>
+          </div>
+          <div id="weather-status-box" style="padding:0.5rem 0;">
+            <div style="color:var(--text-muted); font-size:0.85rem;">Connecting to atmospheric feed...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>⚠️ Active Hazard Advisories</span>
+            <span class="badge badge-high" style="font-size:0.7rem;">Live Feeds</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; text-align:left; border-collapse:collapse; font-size:0.85rem;">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                  <th style="padding:0.4rem;">Alert</th>
+                  <th style="padding:0.4rem;">Locality</th>
+                  <th style="padding:0.4rem;">Severity</th>
+                  <th style="padding:0.4rem;">Type</th>
+                </tr>
+              </thead>
+              <tbody id="recent-alerts-body">
+                <tr><td colspan="4" style="padding:0.5rem; text-align:center; color:var(--text-muted);">Loading hazards...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.5 LIVE AI EVALUATOR DEMO TAB -->
+    <section id="tab-live-demo" class="tab-pane">
+      
+      <!-- Top Demo Banner -->
+      <div class="demo-banner">
+        <div>
+          <div style="font-size:1.35rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span>⚡ WaterWatch AI — Live Evaluator Demonstration Suite</span>
+            <span class="badge badge-low" style="background:rgba(56,189,248,0.2); color:#38bdf8;">Dual-Stream Architecture</span>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+            End-to-end interactive demonstration connecting Optical CV (MobileNetV3 + YOLOv11), Antecedent Rainfall ML (Logistic Regression), Dual-Stream Risk Fusion, and Route Planning for Nagpur.
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+          <a href="#demo-section-cv" class="btn-secondary" style="font-size:0.75rem; text-decoration:none; padding:0.4rem 0.8rem;">1. Image CV</a>
+          <a href="#demo-section-rainfall" class="btn-secondary" style="font-size:0.75rem; text-decoration:none; padding:0.4rem 0.8rem;">2. Rainfall ML</a>
+          <a href="#demo-section-combined" class="btn-secondary" style="font-size:0.75rem; text-decoration:none; padding:0.4rem 0.8rem;">3. Combined Fusion</a>
+          <a href="#demo-section-routing" class="btn-secondary" style="font-size:0.75rem; text-decoration:none; padding:0.4rem 0.8rem;">4. Safe Routing</a>
+          <a href="#demo-section-benchmarks" class="btn-secondary" style="font-size:0.75rem; text-decoration:none; padding:0.4rem 0.8rem;">5. Genuine Benchmarks</a>
+        </div>
+      </div>
+
+      <!-- FEATURE A: LIVE IMAGE DETECTION (DUAL MODEL CV) -->
+      <div id="demo-section-cv" class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">
+          <span>📷 Feature A: Real-Time Optical Road Surface Water Detection</span>
+          <span class="badge badge-low" style="background:rgba(16,185,129,0.2); color:#10b981;">YOLOv11n + MobileNetV3</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Select a verified benchmark sample image below or upload a custom road scene to test waterlogging detection. Negative samples originate from the newly integrated <b>IndiaScene365</b> dataset (Mendeley Data CC BY 4.0).
+        </p>
+
+        <!-- Sample Selector Grid -->
+        <div style="font-size:0.8rem; font-weight:600; color:var(--accent-blue); margin-bottom:6px;">Select Verified Benchmark Sample:</div>
+        <div class="sample-cards-grid" id="demo-sample-grid">
+          <div class="sample-card active-sample" data-key="sample_waterlogged" onclick="window.waterwatchDemo.selectSample('sample_waterlogged');">
+            <img src="/static/samples/sample_waterlogged.jpg" alt="Waterlogged Road">
+            <div class="sample-card-title">🌊 Nagpur Underpass Flood</div>
+            <div class="sample-card-meta"><span class="badge badge-high" style="font-size:0.65rem; padding:1px 4px;">POSITIVE</span> Waterlogged</div>
+          </div>
+          <div class="sample-card" data-key="sample_dry_road" onclick="window.waterwatchDemo.selectSample('sample_dry_road');">
+            <img src="/static/samples/sample_dry_road.png" alt="IndiaScene365 Dry Road">
+            <div class="sample-card-title">☀️ IndiaScene365 Day Road</div>
+            <div class="sample-card-meta"><span class="badge badge-low" style="font-size:0.65rem; padding:1px 4px;">NEGATIVE</span> Clear Road</div>
+          </div>
+          <div class="sample-card" data-key="sample_urban_arterial" onclick="window.waterwatchDemo.selectSample('sample_urban_arterial');">
+            <img src="/static/samples/sample_urban_arterial.png" alt="IndiaScene365 Highway">
+            <div class="sample-card-title">🛣️ IndiaScene365 Highway</div>
+            <div class="sample-card-meta"><span class="badge badge-low" style="font-size:0.65rem; padding:1px 4px;">NEGATIVE</span> Dry Arterial</div>
+          </div>
+          <div class="sample-card" data-key="sample_rainy_wet_road" onclick="window.waterwatchDemo.selectSample('sample_rainy_wet_road');">
+            <img src="/static/samples/sample_rainy_wet_road.png" alt="IndiaScene365 Wet Road">
+            <div class="sample-card-title">🌧️ IndiaScene365 Wet Road</div>
+            <div class="sample-card-meta"><span class="badge badge-low" style="font-size:0.65rem; padding:1px 4px;">NEGATIVE</span> Wet (No Flooding)</div>
+          </div>
+        </div>
+
+        <!-- Custom Upload Dropzone -->
+        <div class="dropzone" id="demo-dropzone" onclick="document.getElementById('demo-file-input').click();" style="padding:1.25rem 1rem; margin-bottom:1rem;">
+          <p style="font-size:0.95rem; font-weight:600; margin-bottom:2px;">📁 Or Click to Upload Your Own Road / Underpass Image</p>
+          <p style="font-size:0.75rem; color:var(--text-muted);">Supports JPG, PNG, WEBP (Max 10 MB)</p>
+          <input type="file" id="demo-file-input" accept="image/*" style="display:none;" onchange="window.waterwatchDemo.handleCustomUpload(event);">
+        </div>
+
+        <!-- Controls Bar -->
+        <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem;">
+          <div style="flex:1; min-width:240px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">
+              <span>Detection Confidence Threshold</span>
+              <span id="demo-conf-val" style="font-weight:700; color:#fff;">0.25</span>
+            </div>
+            <input type="range" id="demo-conf-slider" min="0.10" max="0.75" step="0.05" value="0.25" style="width:100%;" oninput="document.getElementById('demo-conf-val').textContent = this.value;">
+          </div>
+          <button id="btn-demo-run-cv" class="btn-primary" style="width:auto; padding:0.65rem 1.75rem; font-weight:600;" onclick="window.waterwatchDemo.runDetection();">
+            Run Waterlogging Detection
+          </button>
+        </div>
+
+        <!-- Canvas / Preview Output Box -->
+        <div id="demo-cv-output-box" style="display:none;">
+          <div class="preview-canvas-container">
+            <canvas id="demo-canvas"></canvas>
+          </div>
+
+          <!-- Structured Results Card -->
+          <div style="background:rgba(31, 41, 55, 0.7); border:1px solid var(--border-color); border-radius:8px; padding:1rem; margin-top:0.75rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem;">
+              <div>
+                <span style="font-size:0.85rem; color:var(--text-muted);">Classification Result:</span>
+                <span id="demo-cv-class-badge" style="margin-left:8px; font-weight:700; font-size:0.95rem;">--</span>
+              </div>
+              <div>
+                <span style="font-size:0.85rem; color:var(--text-muted);">Severity Heuristic:</span>
+                <span id="demo-cv-severity-badge" style="margin-left:8px; font-weight:700;">--</span>
+              </div>
+              <div>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Latency:</span>
+                <span id="demo-cv-latency" style="font-weight:600; color:#38bdf8; margin-left:4px;">-- ms</span>
+              </div>
+            </div>
+
+            <!-- Confidence Meter -->
+            <div style="margin-bottom:0.75rem;">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                <span style="color:var(--text-muted);">Model Confidence:</span>
+                <span id="demo-cv-conf-pct" style="font-weight:700;">--%</span>
+              </div>
+              <div class="confidence-bar">
+                <div class="confidence-bar-fill" id="demo-cv-conf-fill" style="width:0%; background:var(--accent-emerald);"></div>
+              </div>
+            </div>
+
+            <div id="demo-cv-boxes-meta" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;"></div>
+            <div id="demo-cv-uncertainty-box" style="display:none; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:6px; padding:0.5rem 0.75rem; color:#fca5a5; font-size:0.8rem; margin-bottom:0.5rem;"></div>
+
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem; border-top:1px solid rgba(75,85,99,0.3); padding-top:0.5rem;">
+              <b>Engine Version:</b> <span id="demo-cv-version">MobileNetV3-Small (Classification) + YOLOv11 Nano (Detection)</span> | <i>Scientific Disclaimer: Bounding box coverage indicates visual surface pooling certainty, not physical flood water depth in cm.</i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURE B: INTERACTIVE RAINFALL RISK PREDICTION -->
+      <div id="demo-section-rainfall" class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">
+          <span>🌧️ Feature B: Interactive Antecedent Rainfall Risk Prediction</span>
+          <span class="badge badge-mod">SYNTHETIC_EXPERIMENTAL</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Infers localized waterlogging risk using Nagpur drainage characteristics and cumulative antecedent rainfall windows.
+        </p>
+
+        <!-- Presets Bar -->
+        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem;">
+          <span style="font-size:0.8rem; color:var(--text-muted);">Precipitation Scenarios:</span>
+          <button class="btn-secondary" style="font-size:0.75rem; padding:0.25rem 0.6rem;" onclick="window.waterwatchDemo.setRainPreset(5, 12, 18, 30, 40);">Normal Shower (5mm/h)</button>
+          <button class="btn-secondary" style="font-size:0.75rem; padding:0.25rem 0.6rem;" onclick="window.waterwatchDemo.setRainPreset(32, 55, 80, 115, 150);">Heavy Monsoon (32mm/h)</button>
+          <button class="btn-secondary" style="font-size:0.75rem; padding:0.25rem 0.6rem;" onclick="window.waterwatchDemo.setRainPreset(75, 125, 180, 260, 310);">Extreme Cloudburst (75mm/h)</button>
+        </div>
+
+        <form id="demo-rainfall-form" onsubmit="window.waterwatchDemo.runRainfallPrediction(event);">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+            <div class="form-group">
+              <label>Nagpur Locality</label>
+              <select id="demo-rain-locality" class="select-field">
+                <option value="Manish Nagar (RUB Corridor)" selected>Manish Nagar (RUB Corridor)</option>
+                <option value="Pardi Naka Underpass">Pardi Naka Underpass</option>
+                <option value="Sitabuldi Interchange">Sitabuldi Interchange</option>
+                <option value="Dharampeth Main Road">Dharampeth Main Road</option>
+                <option value="Sadar Residency Road">Sadar Residency Road</option>
+                <option value="Ambazari Lake Road">Ambazari Lake Road</option>
+                <option value="Pratap Nagar Square">Pratap Nagar Square</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Drainage Proxy [0.1 = Clogged, 0.9 = Good]</label>
+              <input type="number" id="demo-rain-drainage" class="input-field" step="0.05" min="0.1" max="0.95" value="0.35" required>
+            </div>
+            <div class="form-group">
+              <label>Acute 1-Hour Rain (mm)</label>
+              <input type="number" id="demo-rain-1h" class="input-field" step="0.5" min="0" max="300" value="28.0" required>
+            </div>
+            <div class="form-group">
+              <label>Cumulative 3-Hour Rain (mm)</label>
+              <input type="number" id="demo-rain-3h" class="input-field" step="0.5" min="0" max="450" value="48.0" required>
+            </div>
+            <div class="form-group">
+              <label>Cumulative 6-Hour Rain (mm)</label>
+              <input type="number" id="demo-rain-6h" class="input-field" step="0.5" min="0" max="600" value="70.0" required>
+            </div>
+            <div class="form-group">
+              <label>Cumulative 24-Hour Rain (mm)</label>
+              <input type="number" id="demo-rain-24h" class="input-field" step="0.5" min="0" max="900" value="105.0" required>
+            </div>
+            <div class="form-group" style="grid-column:1 / -1;">
+              <label>Prior 72-Hour Soil Saturation Rain (mm)</label>
+              <input type="number" id="demo-rain-72h" class="input-field" step="1.0" min="0" max="1500" value="140.0" required>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-demo-run-rain" class="btn-primary" style="margin-top:0.75rem; width:auto; padding:0.65rem 1.75rem;">
+            Predict Rainfall Risk
+          </button>
+        </form>
+
+        <!-- Rainfall Output Box -->
+        <div id="demo-rain-output-box" style="display:none; margin-top:1rem; background:rgba(31, 41, 55, 0.7); border:1px solid var(--border-color); border-radius:8px; padding:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+            <div>
+              <span style="font-size:0.85rem; color:var(--text-muted);">Risk Category:</span>
+              <span id="demo-rain-risk-badge" style="margin-left:8px; font-weight:700;">--</span>
+            </div>
+            <div>
+              <span style="font-size:0.85rem; color:var(--text-muted);">Predicted Probability:</span>
+              <span id="demo-rain-prob" style="margin-left:8px; font-weight:700; color:#38bdf8;">--%</span>
+            </div>
+            <span class="badge badge-mod" style="font-size:0.7rem;">Experimental Synthetic ML</span>
+          </div>
+
+          <div class="disclaimer-box" style="margin-top:0.5rem; margin-bottom:0;">
+            <b>Notice:</b> Experimental model trained on synthetic demonstration data. Probability score reflects synthetic hydrological activation, not verified municipal emergency telemetry.
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURE C: COMBINED DUAL-STREAM ASSESSMENT -->
+      <div id="demo-section-combined" class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">
+          <span>⚡ Feature C: Combined Dual-Stream Risk Assessment (Vision + Rainfall)</span>
+          <span class="badge badge-low" style="background:rgba(99,102,241,0.2); color:#818cf8;">Rule-Based Decision Matrix</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Integrates the active computer vision observation with the antecedent rainfall risk estimate. Combines both streams via an explicitly documented rule-based matrix with transparent reasoning rationale.
+        </p>
+
+        <button id="btn-demo-run-combined" class="btn-primary" style="width:auto; padding:0.65rem 1.75rem; margin-bottom:1rem;" onclick="window.waterwatchDemo.runCombinedAssessment();">
+          Run Combined Dual-Stream Assessment
+        </button>
+
+        <div id="demo-combined-output-box" style="display:none;">
+          <!-- Dual Stream Panels -->
+          <div class="dual-stream-grid">
+            <div class="stream-panel">
+              <div style="font-size:0.85rem; font-weight:700; color:var(--accent-blue); margin-bottom:0.5rem;">📷 Stream 1: Computer Vision Observation</div>
+              <div id="demo-comb-img-summary" style="font-size:0.85rem; line-height:1.4;">--</div>
+            </div>
+            <div class="stream-panel">
+              <div style="font-size:0.85rem; font-weight:700; color:var(--accent-cyan); margin-bottom:0.5rem;">🌧️ Stream 2: Rainfall Hydrological Risk</div>
+              <div id="demo-comb-rain-summary" style="font-size:0.85rem; line-height:1.4;">--</div>
+            </div>
+          </div>
+
+          <!-- Final Combined Verdict -->
+          <div style="background:rgba(17, 24, 39, 0.85); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+              <div>
+                <span style="font-size:0.9rem; color:var(--text-muted);">Combined Multi-Modal Status:</span>
+                <span id="demo-comb-verdict-badge" style="margin-left:8px; font-size:1.05rem; font-weight:700;">--</span>
+              </div>
+              <span class="badge badge-low" style="font-size:0.7rem;">Explicitly Rule-Based (Heuristic Matrix)</span>
+            </div>
+            <div style="font-size:0.9rem; color:#e5e7eb; line-height:1.5; margin-bottom:0.75rem;" id="demo-comb-rationale">--</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--border-color); padding-top:0.5rem;">
+              💡 <b>Provenance Disclosure:</b> The combined status is computed via a deterministic dual-stream heuristic rule. It does NOT claim to be a trained black-box neural fusion model. Visual observations and synthetic rainfall predictions are strictly delineated.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURE D: INTELLIGENT ROUTE RECOMMENDATION -->
+      <div id="demo-section-routing" class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">
+          <span>🧭 Feature D: Flood-Aware Route Recommendation</span>
+          <span class="badge badge-low">Spatial Hazard Routing</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Scores alternative Nagpur road corridors against active road closures, verified standing water, and chronic underpasses.
+        </p>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
+          <div class="form-group">
+            <label>Origin Landmark</label>
+            <select id="demo-route-origin" class="select-field">
+              <option value="Sitabuldi Interchange" selected>Sitabuldi Interchange (Central Nagpur)</option>
+              <option value="Dharampeth Main Road">Dharampeth Main Road (West)</option>
+              <option value="Civil Lines VIP Road">Civil Lines (High Ground)</option>
+              <option value="Pardi Naka Underpass">Pardi Naka (East)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Destination Landmark</label>
+            <select id="demo-route-dest" class="select-field">
+              <option value="Manish Nagar (RUB Corridor)" selected>Manish Nagar (RUB Underpass Corridor)</option>
+              <option value="Ambazari Lake Road">Ambazari Lake Road (South-West)</option>
+              <option value="Narendra Nagar Flyover">Narendra Nagar Flyover (South)</option>
+              <option value="Sadar Residency Road">Sadar Residency Road (North)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Optimization Preference</label>
+            <select id="demo-route-pref" class="select-field">
+              <option value="lowest_risk" selected>🛡️ Lowest Flood Risk (Detour Active Underpasses)</option>
+              <option value="balanced">⚖️ Balanced (Time & Hazard)</option>
+              <option value="fastest">⚡ Fastest Travel Time</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="btn-demo-run-route" class="btn-primary" style="width:auto; padding:0.65rem 1.75rem;" onclick="window.waterwatchDemo.runRouteRecommendation();">
+          Find Flood-Safe Route
+        </button>
+
+        <div id="demo-route-output-box" style="display:none; margin-top:1rem;">
+          <div id="demo-route-cards-list"></div>
+          <div class="disclaimer-box" style="margin-top:0.75rem;">
+            <b>Demonstration / Simulation Label:</b> Route recommendations are calculated based on registered municipal closures and topological underpass risk. Live closure guarantees require active NMC police feeds.
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURE E: MODEL PERFORMANCE & BENCHMARK DASHBOARD -->
+      <div id="demo-section-benchmarks" class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">
+          <span>📊 Feature E: Model Performance Dashboard (Genuine Measured Telemetry)</span>
+          <span class="badge badge-low" style="background:rgba(16,185,129,0.2); color:#10b981;">No Fabricated Metrics</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Metrics loaded directly from saved benchmark reports evaluated on the independent held-out test split (<b>N=79</b>: 31 positive waterlogging images, 48 negative IndiaScene365 road scenes).
+        </p>
+
+        <!-- KPI Summary Cards -->
+        <div class="benchmark-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Unified Dataset</span>
+            <div class="kpi-val" style="color:var(--accent-blue);" id="bm-kpi-total">519</div>
+            <span class="kpi-meta">199 Pos / 320 Neg</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">MobileNetV3 Test Acc</span>
+            <div class="kpi-val" style="color:var(--accent-emerald);" id="bm-kpi-mn-acc">100.0%</div>
+            <span class="kpi-meta">Genuine Held-Out Test</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">YOLOv11 Test Acc</span>
+            <div class="kpi-val" style="color:var(--accent-cyan);" id="bm-kpi-yolo-acc">89.9%</div>
+            <span class="kpi-meta">0 False Alarms on Roads</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Baseline False Alarms</span>
+            <div class="kpi-val" style="color:var(--accent-rose);" id="bm-kpi-base-fp">17 / 48</div>
+            <span class="kpi-meta">Reduced to 0 in Improved</span>
+          </div>
+        </div>
+
+        <!-- Comparative Table -->
+        <div style="overflow-x:auto; margin-bottom:1rem;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                <th style="padding:0.6rem;">Architecture & Setup</th>
+                <th style="padding:0.6rem;">Accuracy</th>
+                <th style="padding:0.6rem;">Precision</th>
+                <th style="padding:0.6rem;">Recall (TPR)</th>
+                <th style="padding:0.6rem;">Specificity (TNR)</th>
+                <th style="padding:0.6rem;">F1-Score</th>
+                <th style="padding:0.6rem;">False Positives</th>
+                <th style="padding:0.6rem;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="demo-benchmark-table-body">
+              <tr style="border-bottom:1px solid rgba(75,85,99,0.2);">
+                <td style="padding:0.6rem;"><b>Baseline YOLOv11</b><br><span style="font-size:0.75rem; color:var(--text-muted);">Trained strictly on positive images</span></td>
+                <td style="padding:0.6rem;">74.7%</td>
+                <td style="padding:0.6rem;">0.622</td>
+                <td style="padding:0.6rem;">0.903</td>
+                <td style="padding:0.6rem;">0.646</td>
+                <td style="padding:0.6rem;">0.737</td>
+                <td style="padding:0.6rem; color:var(--accent-rose);">17 / 48 (35.4%)</td>
+                <td style="padding:0.6rem;"><span class="badge badge-mod">Baseline</span></td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(75,85,99,0.2);">
+                <td style="padding:0.6rem;"><b>Improved YOLOv11</b><br><span style="font-size:0.75rem; color:var(--text-muted);">Fine-tuned with IndiaScene365 negatives</span></td>
+                <td style="padding:0.6rem;">89.9%</td>
+                <td style="padding:0.6rem;">1.000</td>
+                <td style="padding:0.6rem;">0.742</td>
+                <td style="padding:0.6rem;">1.000</td>
+                <td style="padding:0.6rem;">0.852</td>
+                <td style="padding:0.6rem; color:var(--accent-emerald);">0 / 48 (0.0%)</td>
+                <td style="padding:0.6rem;"><span class="badge badge-low">Improved</span></td>
+              </tr>
+              <tr style="background:rgba(16,185,129,0.06); border-bottom:1px solid rgba(75,85,99,0.2);">
+                <td style="padding:0.6rem;"><b>MobileNetV3-Small</b><br><span style="font-size:0.75rem; color:var(--text-muted);">Transfer learning + tuned threshold</span></td>
+                <td style="padding:0.6rem; font-weight:700; color:var(--accent-emerald);">100.0%</td>
+                <td style="padding:0.6rem; font-weight:700;">1.000</td>
+                <td style="padding:0.6rem; font-weight:700;">1.000</td>
+                <td style="padding:0.6rem; font-weight:700;">1.000</td>
+                <td style="padding:0.6rem; font-weight:700; color:var(--accent-emerald);">1.000</td>
+                <td style="padding:0.6rem; color:var(--accent-emerald);">0 / 48 (0.0%)</td>
+                <td style="padding:0.6rem;"><span class="badge badge-low" style="background:rgba(16,185,129,0.25); color:#10b981;">Best Accuracy</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="font-size:0.8rem; color:var(--text-muted);">
+          <b>Held-Out Test Set Manifest:</b> 79 images (31 waterlogged, 48 not_waterlogged). Partitioned with fixed seed 42 before any training or tuning. Zero test data was used for model weights or hyperparameter selection.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2. INTERACTIVE MAP TAB -->
+    <section id="tab-map" class="tab-pane">
+      <div class="card" style="margin-bottom:0.75rem;">
+        <div class="map-controls-bar">
+          <span style="font-weight:600; font-size:0.85rem; color:#fff;">Layer Toggles:</span>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-incidents" checked> 🔴 Verified Incidents
+          </label>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-closures" checked> ⛔ Road Closures
+          </label>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-hotspots" checked> 🟣 Chronic Hotspots
+          </label>
+          <label style="font-size:0.8rem; display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="layer-reports" checked> 🔵 Citizen Reports
+          </label>
+          <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">
+            💡 <i>Click anywhere on the map to automatically capture GPS coordinates for reporting</i>
+          </span>
+        </div>
+        <div id="nagpur-map"></div>
+      </div>
+    </section>
+
+    <!-- 3. INTELLIGENT ROUTE PLANNER TAB -->
+    <section id="tab-routes" class="tab-pane">
+      <div class="route-grid">
+        <div class="card">
+          <div class="card-title">🧭 Plan Route Around Waterlogging</div>
+          
+          <div class="form-group">
+            <label>Origin Point (Nagpur Landmark)</label>
+            <select id="route-origin-preset" class="select-field"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Destination Point</label>
+            <select id="route-dest-preset" class="select-field"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Travel Mode</label>
+            <select id="route-mode" class="select-field">
+              <option value="driving" selected>🚗 Driving (Four-Wheeler)</option>
+              <option value="cycling">🛵 Two-Wheeler / Motorcycle</option>
+              <option value="walking">🚶 Walking / Pedestrian</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Optimization Preference</label>
+            <select id="route-preference" class="select-field">
+              <option value="balanced" selected>⚖️ Balanced (Travel Time & Water Hazard)</option>
+              <option value="lowest_risk">🛡️ Lowest Flood Risk (Detour active closures & RUBs)</option>
+              <option value="fastest">⚡ Fastest Available Route</option>
+            </select>
+          </div>
+
+          <button id="btn-plan-route" class="btn-primary">Find Recommended Route</button>
+
+          <div class="disclaimer-box" style="margin-top:1rem;">
+            <b>Flood Route Warning:</b> Recommendations evaluate spatial proximity to active road closures, verified standing water, and chronic railway underpasses. Never drive through deep water.
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:1rem;">
+            <div class="card-title">Available Candidate Routes</div>
+            <div id="route-candidates-container">
+              <p style="color:var(--text-muted); font-size:0.9rem;">
+                Select origin and destination to calculate alternative routes scored against live waterlogging hazards.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. RAINFALL RISK PREDICTOR TAB -->
+    <section id="tab-predict" class="tab-pane">
+      <div style="max-width:800px; margin:0 auto;" class="card">
+        <div class="card-title">
+          <span>🌧️ Experimental Rainfall-to-Waterlogging Risk Estimator</span>
+          <span class="badge badge-mod">SYNTHETIC_EXPERIMENTAL</span>
+        </div>
+        
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Runs read-only inference against the trained machine learning pipeline (<code>models/rainfall/synthetic_rainfall_model.joblib</code>) using Nagpur locality drainage characteristics and antecedent precipitation windows.
+        </p>
+
+        <form id="rainfall-predict-form">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Nagpur Locality</label>
+              <select id="p-locality" class="select-field">
+                <option value="Manish Nagar (RUB Corridor)">Manish Nagar (RUB Corridor)</option>
+                <option value="Sitabuldi (Commercial)">Sitabuldi (Commercial)</option>
+                <option value="Dharampeth (West Nagpur)">Dharampeth (West Nagpur)</option>
+                <option value="Sadar (Residency Road)">Sadar (Residency Road)</option>
+                <option value="Dhantoli (Wardha Road)">Dhantoli (Wardha Road)</option>
+                <option value="Mankapur (Ring Road)">Mankapur (Ring Road)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Drainage Capacity Proxy [0.1 = Poor, 0.9 = Good]</label>
+              <input type="number" id="p-drainage-proxy" class="input-field" step="0.05" min="0.1" max="0.95" value="0.45" required>
+            </div>
+
+            <div class="form-group">
+              <label>Acute 1-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-1h" class="input-field" step="0.5" min="0" max="250" value="25.0" required>
+            </div>
+
+            <div class="form-group">
+              <label>Cumulative 3-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-3h" class="input-field" step="0.5" min="0" max="350" value="45.0" required>
+            </div>
+
+            <div class="form-group">
+              <label>Cumulative 6-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-6h" class="input-field" step="0.5" min="0" max="500" value="65.0" required>
+            </div>
+
+            <div class="form-group">
+              <label>Cumulative 24-Hour Rainfall (mm)</label>
+              <input type="number" id="p-rain-24h" class="input-field" step="0.5" min="0" max="800" value="95.0" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Antecedent 72-Hour Soil Saturation Rainfall (mm)</label>
+              <input type="number" id="p-rain-72h" class="input-field" step="1.0" min="0" max="1200" value="130.0" required>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-run-prediction" class="btn-primary" style="margin-top:0.5rem;">Calculate Waterlogging Risk</button>
+        </form>
+
+        <div id="prediction-result-box" style="display:none; margin-top:1.25rem;" class="card"></div>
+      </div>
+    </section>
+
+    <!-- 5. IMAGE-BASED DETECTION TAB -->
+    <section id="tab-detect" class="tab-pane">
+      <div style="max-width:800px; margin:0 auto;" class="card">
+        <div class="card-title">
+          <span>📷 Roadway Surface Water Detection</span>
+          <span class="badge badge-low" style="background:rgba(56,189,248,0.2); color:#38bdf8;">YOLOv11 Nano</span>
+        </div>
+
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Upload a roadway or CCTV photo to detect visible standing water puddles. 
+          Uses <code>models/image/best.pt</code> without modifying weights.
+        </p>
+
+        <div class="dropzone" onclick="document.getElementById('image-upload-input').click();">
+          <p style="font-size:1.1rem; font-weight:600; margin-bottom:4px;">Drag & Drop or Click to Upload Image</p>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Supports JPG, PNG, WEBP (Max 10 MB)</p>
+          <input type="file" id="image-upload-input" accept="image/*" style="display:none;">
+        </div>
+
+        <div style="margin-top:1rem; display:flex; align-items:center; gap:1rem;">
+          <div style="flex:1;">
+            <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:4px;">Detection Confidence Threshold</label>
+            <input type="range" id="detect-conf-thresh" min="0.10" max="0.70" step="0.05" value="0.25" style="width:100%;" oninput="document.getElementById('conf-val').textContent = this.value;">
+          </div>
+          <span id="conf-val" style="font-weight:700; width:40px;">0.25</span>
+        </div>
+
+        <img id="image-preview" src="" alt="Preview" style="display:none; max-width:100%; max-height:350px; border-radius:8px; margin:1rem auto; border:1px solid var(--border-color);">
+
+        <button id="btn-run-detect" class="btn-primary" style="margin-top:1rem;">Run Optical Detection</button>
+
+        <div id="image-detect-results" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- 6. CITIZEN INCIDENT REPORTING TAB -->
+    <section id="tab-report" class="tab-pane">
+      <div style="max-width:700px; margin:0 auto;" class="card">
+        <div class="card-title">📢 Report Roadway Waterlogging</div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Submit real-time street waterlogging incidents. All submissions are assigned a tracking code and initially marked <b>UNVERIFIED</b> until inspected by municipal authorities.
+        </p>
+
+        <div id="report-feedback-box" style="display:none; margin-bottom:1rem;"></div>
+
+        <form id="citizen-report-form">
+          <div class="form-group">
+            <label>Location / Landmark Name *</label>
+            <input type="text" id="report-loc-name" class="input-field" placeholder="e.g. Near Law College Square, Dharampeth" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Latitude *</label>
+              <input type="number" id="report-lat" class="input-field" step="0.00001" placeholder="21.1458" value="21.1458" required>
+            </div>
+            <div class="form-group">
+              <label>Longitude *</label>
+              <input type="number" id="report-lon" class="input-field" step="0.00001" placeholder="79.0882" value="79.0882" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Incident Description *</label>
+            <textarea id="report-desc" class="textarea-field" rows="3" placeholder="Describe the water accumulation, vehicle stalling, or blocked drains..." required></textarea>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Estimated Severity</label>
+              <select id="report-sev" class="select-field">
+                <option value="Low">Low (Puddle / Minor Splashing)</option>
+                <option value="Moderate" selected>Moderate (Curb-level, slow traffic)</option>
+                <option value="High">High (Submerged wheels, vehicle stalls)</option>
+                <option value="Critical">Critical (Impassable / RUB Submerged)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Estimated Water Depth (cm, optional)</label>
+              <input type="number" id="report-depth" class="input-field" placeholder="e.g. 30" min="0" max="300">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Your Name (optional)</label>
+              <input type="text" id="report-name" class="input-field" placeholder="Citizen Name">
+            </div>
+            <div class="form-group">
+              <label>Incident Photo (optional)</label>
+              <input type="file" id="report-photo" class="input-field" accept="image/*">
+            </div>
+          </div>
+
+          <button type="submit" id="btn-submit-report" class="btn-primary" style="margin-top:0.5rem;">Submit Waterlogging Report</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 7. AUTHORITY REVIEW DASHBOARD TAB -->
+    <section id="tab-admin" class="tab-pane">
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">🛡️ Nagpur Municipal Corporation — Authority Review Dashboard</div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+          Restricted interface for reviewing, field-verifying, or rejecting citizen incident reports.
+        </p>
+
+        <div style="display:flex; gap:0.75rem; align-items:center; max-width:550px;">
+          <input type="password" id="admin-token-input" class="input-field" placeholder="Enter administrative secret token..." value="waterwatch_admin_secret_token_2026">
+          <button id="btn-admin-login" class="btn-primary" style="width:auto; white-space:nowrap;">Access Review Panel</button>
+        </div>
+      </div>
+
+      <div id="admin-panel-content" style="display:none;" class="card">
+        <div class="card-title">Pending Citizen Submissions</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                <th style="padding:0.5rem;">Tracking ID</th>
+                <th style="padding:0.5rem;">Location & Description</th>
+                <th style="padding:0.5rem;">Severity</th>
+                <th style="padding:0.5rem;">Status</th>
+                <th style="padding:0.5rem;">Photo</th>
+                <th style="padding:0.5rem;">Review Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-reports-table-body">
+              <tr><td colspan="6" style="padding:1rem; text-align:center; color:var(--text-muted);">Loading reports...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. MODEL & DATA STATUS TAB -->
+    <section id="tab-status" class="tab-pane">
+      <div style="max-width:900px; margin:0 auto;">
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div class="card-title">ℹ️ System Status & Machine Learning Provenance</div>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            Transparent audit of model readiness, data sources, and operational restrictions across the WaterWatch AI system.
+          </p>
+        </div>
+
+        <div id="model-status-cards">
+          <div style="color:var(--text-muted); text-align:center; padding:2rem;">Loading model diagnostics...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Application JS Modules -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/map.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

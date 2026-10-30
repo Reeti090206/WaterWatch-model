@@ -66,12 +66,19 @@ def predict(source_path, weights_path=None, conf_thresh=0.25, save_annotated=Fal
                     "bbox_normalized_xywh": xywhn
                 })
 
+        saved_path = str(save_dir / Path(img_file).name) if save_annotated else None
+
         item_result = {
             "image_path": str(img_file),
             "waterlogging_detected": len(detections) > 0,
             "detection_count": len(detections),
             "detections": detections,
-            "scientific_disclaimer": "Visual appearance only. Do not infer precise rainfall, capture time, GPS coordinates, or water depth from image appearance alone."
+            "saved_annotated_path": saved_path,
+            "scientific_disclaimer": (
+                "Visual bounding box detection only. Detection confidence indicates visual pattern certainty, "
+                "NOT flood water depth in centimeters or physical waterlogging severity. "
+                "Quantitative severity assessment requires physical staff gauges or verified multi-tier severity labels."
+            )
         }
         outputs.append(item_result)
 
@@ -79,12 +86,13 @@ def predict(source_path, weights_path=None, conf_thresh=0.25, save_annotated=Fal
 
 
 def main():
-    parser = argparse.ArgumentParser(description="WaterWatch Image Inference")
+    parser = argparse.ArgumentParser(description="WaterWatch Standalone Image Inference Engine")
     parser.add_argument("--source", type=str, required=True, help="Path to input image file or directory")
     parser.add_argument("--weights", type=str, default=None, help="Path to YOLO weights (.pt)")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     parser.add_argument("--save", action="store_true", help="Save annotated detection image")
-    parser.add_argument("--output_dir", type=str, default=None, help="Output directory for annotated images")
+    parser.add_argument("--output_dir", type=str, default="runs/predict", help="Output directory for annotated images")
+    parser.add_argument("--json", action="store_true", help="Output pure JSON")
     args = parser.parse_args()
 
     results = predict(
@@ -95,7 +103,28 @@ def main():
         output_dir=args.output_dir
     )
 
-    print(json.dumps(results, indent=2))
+    if args.json:
+        print(json.dumps(results, indent=2))
+    else:
+        print("\n" + "=" * 65)
+        print("   WATERWATCH AI — VISUAL WATERLOGGING INFERENCE (YOLOv11)")
+        print("=" * 65)
+        for res in results:
+            p = Path(res["image_path"]).name
+            if res["waterlogging_detected"]:
+                print(f"  [DETECTED]     : {p}")
+                print(f"  Instances      : {res['detection_count']} bounding box(es)")
+                for idx, det in enumerate(res["detections"], 1):
+                    print(f"    - Box #{idx}   : Class='{det['class_name']}', Confidence={det['confidence']:.2f}, Box={det['bbox_xyxy']}")
+            else:
+                print(f"  [NO DETECTION] : {p}")
+                print("  Instances      : 0 bounding boxes detected above threshold")
+
+            if res["saved_annotated_path"]:
+                print(f"  Annotated Img  : {res['saved_annotated_path']}")
+            print("  " + "-" * 63)
+        print("  [DISCLAIMER] Detection confidence != flood water depth or severity.")
+        print("=" * 65 + "\n")
 
 
 if __name__ == "__main__":

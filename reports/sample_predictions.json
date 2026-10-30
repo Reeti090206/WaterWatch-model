@@ -1,0 +1,266 @@
+{
+  "dataset_source": "waterwatch_ai_nagpur_localities_sample.csv",
+  "generation_timestamp": "2026-10-24T01:41:35.175363",
+  "training_data_status": "SYNTHETIC_EXPERIMENTAL",
+  "model_name": "LogisticRegression (StandardScaler pipeline)",
+  "sample_rows_predictions": [
+    {
+      "row_index": 10,
+      "timestamp": "2025-06-01 12:00:00",
+      "location_name": "Sitabuldi",
+      "location_id": "NGP_SITABULDI",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 48.9,
+      "drainage_capacity_proxy": 0.84,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.3268,
+      "risk_category": "LOW"
+    },
+    {
+      "row_index": 46,
+      "timestamp": "2025-06-03 14:00:00",
+      "location_name": "Manish Nagar",
+      "location_id": "NGP_MANISH_NAGAR",
+      "rainfall_1h_mm": 53.0,
+      "rainfall_24h_mm": 101.6,
+      "drainage_capacity_proxy": 0.7,
+      "ground_truth_label": 1,
+      "ground_truth_severity": "high",
+      "predicted_class": 1,
+      "predicted_probability": 0.9763,
+      "risk_category": "HIGH"
+    },
+    {
+      "row_index": 75,
+      "timestamp": "2025-06-05 14:00:00",
+      "location_name": "Dharampeth",
+      "location_id": "NGP_DHARAMPETH",
+      "rainfall_1h_mm": 2.0,
+      "rainfall_24h_mm": 67.0,
+      "drainage_capacity_proxy": 0.58,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 1,
+      "predicted_probability": 0.5242,
+      "risk_category": "MODERATE"
+    },
+    {
+      "row_index": 120,
+      "timestamp": "2025-06-08 11:00:00",
+      "location_name": "Dharampeth",
+      "location_id": "NGP_DHARAMPETH",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 46.4,
+      "drainage_capacity_proxy": 0.6,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 1,
+      "predicted_probability": 0.5189,
+      "risk_category": "MODERATE"
+    },
+    {
+      "row_index": 250,
+      "timestamp": "2025-06-15 20:00:00",
+      "location_name": "Sadar",
+      "location_id": "NGP_SADAR",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 58.8,
+      "drainage_capacity_proxy": 0.53,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.4798,
+      "risk_category": "MODERATE"
+    },
+    {
+      "row_index": 400,
+      "timestamp": "2025-06-23 05:00:00",
+      "location_name": "Dhantoli",
+      "location_id": "NGP_DHANTOLI",
+      "rainfall_1h_mm": 6.1,
+      "rainfall_24h_mm": 61.1,
+      "drainage_capacity_proxy": 0.83,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.4018,
+      "risk_category": "MODERATE"
+    },
+    {
+      "row_index": 600,
+      "timestamp": "2025-07-06 03:00:00",
+      "location_name": "Dharampeth",
+      "location_id": "NGP_DHARAMPETH",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 54.2,
+      "drainage_capacity_proxy": 0.55,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.4669,
+      "risk_category": "MODERATE"
+    },
+    {
+      "row_index": 850,
+      "timestamp": "2025-07-20 08:00:00",
+      "location_name": "Dharampeth",
+      "location_id": "NGP_DHARAMPETH",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 42.6,
+      "drainage_capacity_proxy": 0.81,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.3008,
+      "risk_category": "LOW"
+    },
+    {
+      "row_index": 1100,
+      "timestamp": "2025-08-03 18:00:00",
+      "location_name": "Dhantoli",
+      "location_id": "NGP_DHANTOLI",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 41.3,
+      "drainage_capacity_proxy": 0.45,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.4814,
+      "risk_category": "MODERATE"
+    },
+    {
+      "row_index": 1500,
+      "timestamp": "2025-08-30 15:00:00",
+      "location_name": "Sitabuldi",
+      "location_id": "NGP_SITABULDI",
+      "rainfall_1h_mm": 0.0,
+      "rainfall_24h_mm": 47.1,
+      "drainage_capacity_proxy": 0.62,
+      "ground_truth_label": 0,
+      "ground_truth_severity": "none",
+      "predicted_class": 0,
+      "predicted_probability": 0.4573,
+      "risk_category": "MODERATE"
+    }
+  ],
+  "locality_predictions": [
+    {
+      "location_id": "NGP_DHANTOLI",
+      "location_name": "Dhantoli",
+      "drainage_capacity_proxy": 0.582,
+      "test_rainfall_condition": "Moderate Monsoon (1h=18mm, 24h=70mm)",
+      "predicted_class": 1,
+      "predicted_probability": 0.7874,
+      "risk_category": "HIGH"
+    },
+    {
+      "location_id": "NGP_DHARAMPETH",
+      "location_name": "Dharampeth",
+      "drainage_capacity_proxy": 0.59,
+      "test_rainfall_condition": "Moderate Monsoon (1h=18mm, 24h=70mm)",
+      "predicted_class": 1,
+      "predicted_probability": 0.7846,
+      "risk_category": "HIGH"
+    },
+    {
+      "location_id": "NGP_MANISH_NAGAR",
+      "location_name": "Manish Nagar",
+      "drainage_capacity_proxy": 0.587,
+      "test_rainfall_condition": "Moderate Monsoon (1h=18mm, 24h=70mm)",
+      "predicted_class": 1,
+      "predicted_probability": 0.7857,
+      "risk_category": "HIGH"
+    },
+    {
+      "location_id": "NGP_MANKAPUR",
+      "location_name": "Mankapur",
+      "drainage_capacity_proxy": 0.588,
+      "test_rainfall_condition": "Moderate Monsoon (1h=18mm, 24h=70mm)",
+      "predicted_class": 1,
+      "predicted_probability": 0.7853,
+      "risk_category": "HIGH"
+    },
+    {
+      "location_id": "NGP_SADAR",
+      "location_name": "Sadar",
+      "drainage_capacity_proxy": 0.581,
+      "test_rainfall_condition": "Moderate Monsoon (1h=18mm, 24h=70mm)",
+      "predicted_class": 1,
+      "predicted_probability": 0.7877,
+      "risk_category": "HIGH"
+    },
+    {
+      "location_id": "NGP_SITABULDI",
+      "location_name": "Sitabuldi",
+      "drainage_capacity_proxy": 0.592,
+      "test_rainfall_condition": "Moderate Monsoon (1h=18mm, 24h=70mm)",
+      "predicted_class": 1,
+      "predicted_probability": 0.7839,
+      "risk_category": "HIGH"
+    }
+  ],
+  "scenario_predictions": [
+    {
+      "scenario_name": "Dry Weather / Negligible Rain",
+      "description": "Clear dry day with functioning road drains",
+      "inputs": {
+        "rainfall_1h_mm": 0.0,
+        "rainfall_3h_mm": 1.5,
+        "rainfall_6h_mm": 3.0,
+        "rainfall_24h_mm": 5.0,
+        "rainfall_prev_72h_mm": 15.0,
+        "drainage_capacity_proxy": 0.75
+      },
+      "predicted_class": 0,
+      "predicted_probability": 0.2248,
+      "risk_category": "LOW"
+    },
+    {
+      "scenario_name": "Typical Monsoon Rainfall",
+      "description": "Standard monsoon shower in central Nagpur",
+      "inputs": {
+        "rainfall_1h_mm": 12.0,
+        "rainfall_3h_mm": 24.0,
+        "rainfall_6h_mm": 38.0,
+        "rainfall_24h_mm": 52.0,
+        "rainfall_prev_72h_mm": 75.0,
+        "drainage_capacity_proxy": 0.58
+      },
+      "predicted_class": 1,
+      "predicted_probability": 0.6604,
+      "risk_category": "HIGH"
+    },
+    {
+      "scenario_name": "Heavy Downpour / Saturated Soil",
+      "description": "Intense afternoon thunderstorm on pre-saturated ground",
+      "inputs": {
+        "rainfall_1h_mm": 32.0,
+        "rainfall_3h_mm": 54.0,
+        "rainfall_6h_mm": 72.0,
+        "rainfall_24h_mm": 98.0,
+        "rainfall_prev_72h_mm": 140.0,
+        "drainage_capacity_proxy": 0.42
+      },
+      "predicted_class": 1,
+      "predicted_probability": 0.9605,
+      "risk_category": "HIGH"
+    },
+    {
+      "scenario_name": "Severe Cloudburst & Obstructed Drain",
+      "description": "Extreme precipitation event with severely blocked storm drains",
+      "inputs": {
+        "rainfall_1h_mm": 58.0,
+        "rainfall_3h_mm": 78.0,
+        "rainfall_6h_mm": 98.0,
+        "rainfall_24h_mm": 135.0,
+        "rainfall_prev_72h_mm": 180.0,
+        "drainage_capacity_proxy": 0.2
+      },
+      "predicted_class": 1,
+      "predicted_probability": 0.9973,
+      "risk_category": "HIGH"
+    }
+  ]
+}
