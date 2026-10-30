@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Wifi,
+  Zap,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -35,6 +36,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const navItems = [
     { id: "home", label: "Home", icon: Droplet },
+    { id: "livedemo", label: "Live AI Demo", icon: Zap },
     { id: "dashboard", label: "Live Dashboard", icon: Activity },
     { id: "map", label: "Waterlogging Map", icon: Map },
     { id: "routing", label: "Safe Route Planner", icon: Navigation },

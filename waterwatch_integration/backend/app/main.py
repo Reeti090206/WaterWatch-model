@@ -18,6 +18,7 @@ from waterwatch_integration.backend.app.api.rainfall import router as rainfall_r
 from waterwatch_integration.backend.app.api.detection import router as detection_router
 from waterwatch_integration.backend.app.api.routes import router as routes_router
 from waterwatch_integration.backend.app.api.hotspots import router as hotspots_router
+from waterwatch_integration.backend.app.api.assessment import router as assessment_router
 
 from contextlib import asynccontextmanager
 
@@ -56,6 +57,7 @@ app.include_router(rainfall_router, prefix=settings.api_prefix)
 app.include_router(detection_router, prefix=settings.api_prefix)
 app.include_router(routes_router, prefix=settings.api_prefix)
 app.include_router(hotspots_router, prefix=settings.api_prefix)
+app.include_router(assessment_router, prefix=settings.api_prefix)
 
 # Mount Uploads directory for photo previews
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)

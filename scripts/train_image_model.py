@@ -88,10 +88,17 @@ def train(epochs=10, batch_size=8, imgsz=640, model_type="yolo11n.pt", device=No
         project=str(PROJECT_ROOT / "runs" / "train").replace("\\", "/"),
         name="water_logging_yolo11",
         exist_ok=True,
-        workers=2,
+        workers=0,
         plots=True,
         save=True,
-        verbose=True
+        verbose=True,
+        fliplr=0.5,
+        hsv_h=0.015,
+        hsv_s=0.4,
+        hsv_v=0.3,
+        degrees=5.0,
+        scale=0.2,
+        patience=10
     )
 
     # Export best model weights to models/image/

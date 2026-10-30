@@ -13,6 +13,11 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Ensure site-packages on Windows root drive installation is accessible
+for sp in [Path("D:/Lib/site-packages"), Path(sys.prefix) / "Lib" / "site-packages"]:
+    if sp.exists() and str(sp) not in sys.path:
+        sys.path.append(str(sp))
+
 import uvicorn
 from waterwatch_integration.backend.app.config import settings, RAINFALL_MODEL_PATH, IMAGE_MODEL_PATH, DATA_DIR
 

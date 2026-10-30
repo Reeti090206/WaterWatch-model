@@ -176,9 +176,12 @@ def test_combined_pipeline_confirmed_hazard():
 
 
 def test_combined_pipeline_disagreement_flagged():
-    """Verify combined pipeline flags disagreement when heavy rainfall occurs but image is clear."""
-    # Use image 104 with 0 detections above threshold
-    test_img = PROCESSED_DIR / "yolo_water_logging" / "images" / "test" / "waterloggingt-104-_jpg.rf.76d86055e86c1059ae4e896dd158c067.jpg"
+    # Use verified non-waterlogged road image from test set
+    clear_imgs = list((PROCESSED_DIR / "yolo_water_logging" / "images" / "test").glob("neg_indiascene_*.*"))
+    if clear_imgs:
+        test_img = clear_imgs[0]
+    else:
+        test_img = PROCESSED_DIR / "yolo_water_logging" / "images" / "test" / "waterloggingt-104-_jpg.rf.76d86055e86c1059ae4e896dd158c067.jpg"
     assert test_img.exists()
 
     res = run_combined_pipeline(

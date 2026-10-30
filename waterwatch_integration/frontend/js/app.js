@@ -5,7 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Navigation Tab Switching
-  const navTabs = document.querySelectorAll('.tab-btn');
+  const navTabs = document.querySelectorAll('.sidebar-item, .tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
 
   function switchTab(targetTabId) {
@@ -23,6 +23,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 200);
     }
+  }
+
+  window.switchTab = switchTab;
+
+  // URL Hash Navigation (e.g. #tab-live-demo)
+  const handleHash = () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      const tabId = hash.startsWith('tab-') ? hash : `tab-${hash}`;
+      if (document.getElementById(tabId)) {
+        switchTab(tabId);
+      }
+    }
+  };
+  window.addEventListener('hashchange', handleHash);
+  if (window.location.hash) {
+    handleHash();
+  } else {
+    switchTab('tab-home');
   }
 
   navTabs.forEach(btn => {
@@ -505,7 +524,429 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================
+  // 9. LIVE AI DEMO CONTROLLER & EVENT ENGINE
+  // ==========================================
+  window.waterwatchDemo = {
+    selectedSampleKey: 'sample_waterlogged',
+    customImageFile: null,
+    currentImageElement: null,
+    latestCvResult: null,
+    latestRainResult: null,
+
+    init() {
+      // Pre-load default sample
+      this.selectSample('sample_waterlogged');
+      // Pre-load benchmarks
+      this.loadBenchmarks();
+    },
+
+    selectSample(key) {
+      this.selectedSampleKey = key;
+      this.customImageFile = null;
+
+      // Update card UI
+      document.querySelectorAll('#demo-sample-grid .sample-card').forEach(c => {
+        c.classList.toggle('active-sample', c.dataset.key === key);
+      });
+
+      const sampleMap = {
+        'sample_waterlogged': '/static/samples/sample_waterlogged.jpg',
+        'sample_dry_road': '/static/samples/sample_dry_road.png',
+        'sample_urban_arterial': '/static/samples/sample_urban_arterial.png',
+        'sample_rainy_wet_road': '/static/samples/sample_rainy_wet_road.png'
+      };
+
+      const imgUrl = sampleMap[key];
+      if (imgUrl) {
+        this.renderPreviewImage(imgUrl);
+      }
+    },
+
+    handleCustomUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      this.customImageFile = file;
+      this.selectedSampleKey = null;
+
+      // Remove sample card selection
+      document.querySelectorAll('#demo-sample-grid .sample-card').forEach(c => {
+        c.classList.remove('active-sample');
+      });
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.renderPreviewImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    },
+
+    renderPreviewImage(src, detections = []) {
+      const canvas = document.getElementById('demo-canvas');
+      const outputBox = document.getElementById('demo-cv-output-box');
+      if (!canvas || !outputBox) return;
+
+      outputBox.style.display = 'block';
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        this.currentImageElement = img;
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Draw bounding boxes if provided
+        if (detections && detections.length > 0) {
+          detections.forEach((det, idx) => {
+            const bbox = det.bbox_pixels;
+            if (!bbox || bbox.length < 4) return;
+            const [x1, y1, x2, y2] = bbox;
+            const w = x2 - x1;
+            const h = y2 - y1;
+
+            // Box fill
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
+            ctx.fillRect(x1, y1, w, h);
+
+            // Box outline
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = Math.max(3, Math.round(canvas.width / 350));
+            ctx.strokeRect(x1, y1, w, h);
+
+            // Label pill
+            const confPct = Math.round(det.confidence * 100);
+            const labelText = `Waterlogging #${idx + 1} (${confPct}%)`;
+            const fontSize = Math.max(14, Math.round(canvas.width / 50));
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            const textWidth = ctx.measureText(labelText).width;
+
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(x1, Math.max(0, y1 - fontSize - 6), textWidth + 12, fontSize + 6);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(labelText, x1 + 6, Math.max(fontSize, y1 - 4));
+          });
+        }
+      };
+      img.src = src;
+    },
+
+    async runDetection() {
+      const btn = document.getElementById('btn-demo-run-cv');
+      const slider = document.getElementById('demo-conf-slider');
+      const confThreshold = slider ? parseFloat(slider.value) : 0.25;
+
+      btn.disabled = true;
+      btn.textContent = 'Processing Inference...';
+
+      try {
+        let result;
+        if (this.customImageFile) {
+          const formData = new FormData();
+          formData.append('image', this.customImageFile);
+          formData.append('conf_threshold', confThreshold);
+          result = await apiClient.detectImage(formData);
+        } else if (this.selectedSampleKey) {
+          result = await apiClient.detectSample(this.selectedSampleKey, confThreshold);
+        } else {
+          alert('Please select a verified sample or upload an image first.');
+          btn.disabled = false;
+          btn.textContent = 'Run Waterlogging Detection';
+          return;
+        }
+
+        this.latestCvResult = result;
+        this.renderCvResult(result);
+      } catch (err) {
+        alert('Detection error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run Waterlogging Detection';
+      }
+    },
+
+    renderCvResult(result) {
+      const outputBox = document.getElementById('demo-cv-output-box');
+      if (!outputBox) return;
+      outputBox.style.display = 'block';
+
+      // 1. Re-draw image with bounding boxes on canvas
+      const imgUrl = result.image_url || (this.currentImageElement ? this.currentImageElement.src : null);
+      if (imgUrl) {
+        this.renderPreviewImage(imgUrl, result.detections || []);
+      }
+
+      // 2. Classification Badge
+      const classBadge = document.getElementById('demo-cv-class-badge');
+      if (result.waterlogging_detected) {
+        classBadge.className = 'badge badge-high';
+        classBadge.innerHTML = '🌊 WATERLOGGED ROAD';
+      } else {
+        classBadge.className = 'badge badge-low';
+        classBadge.innerHTML = '☀️ NOT WATERLOGGED (CLEAR)';
+      }
+
+      // 3. Severity Heuristic
+      const sevBadge = document.getElementById('demo-cv-severity-badge');
+      const sev = result.severity || 'None';
+      if (sev === 'High') {
+        sevBadge.className = 'badge badge-high';
+        sevBadge.textContent = 'High (Severe Pooling)';
+      } else if (sev === 'Moderate') {
+        sevBadge.className = 'badge badge-mod';
+        sevBadge.textContent = 'Moderate (Curb Pooling)';
+      } else if (sev === 'Low') {
+        sevBadge.className = 'badge badge-mod';
+        sevBadge.textContent = 'Low (Minor Puddle)';
+      } else {
+        sevBadge.className = 'badge badge-low';
+        sevBadge.textContent = 'None (Dry Pavement)';
+      }
+
+      // 4. Latency
+      document.getElementById('demo-cv-latency').textContent = `${result.inference_time_ms ?? '--'} ms`;
+
+      // 5. Confidence
+      const confPct = result.confidence_percentage ?? 0;
+      document.getElementById('demo-cv-conf-pct').textContent = `${confPct}%`;
+      const fillBar = document.getElementById('demo-cv-conf-fill');
+      fillBar.style.width = `${Math.min(100, Math.max(5, confPct))}%`;
+      fillBar.style.background = result.waterlogging_detected ? 'var(--accent-rose)' : 'var(--accent-emerald)';
+
+      // 6. Boxes & Coverage Meta
+      const metaBox = document.getElementById('demo-cv-boxes-meta');
+      const boxCount = result.detection_count ?? 0;
+      const coverage = result.total_water_area_percentage ?? 0;
+      metaBox.innerHTML = `
+        <span>Detected Bounding Boxes: <b>${boxCount}</b></span> | 
+        <span>Visual Road Coverage: <b>${coverage}%</b></span> | 
+        <span>Resolution: <b>${result.dimensions?.width ?? 0}x${result.dimensions?.height ?? 0}px</b></span>
+      `;
+
+      // 7. Uncertainty Warning
+      const uncBox = document.getElementById('demo-cv-uncertainty-box');
+      if (result.uncertainty_warning) {
+        uncBox.style.display = 'block';
+        uncBox.innerHTML = `⚠️ <b>Uncertainty Flag:</b> ${result.uncertainty_warning}`;
+      } else {
+        uncBox.style.display = 'none';
+      }
+    },
+
+    setRainPreset(r1, r3, r6, r24, r72) {
+      document.getElementById('demo-rain-1h').value = r1;
+      document.getElementById('demo-rain-3h').value = r3;
+      document.getElementById('demo-rain-6h').value = r6;
+      document.getElementById('demo-rain-24h').value = r24;
+      document.getElementById('demo-rain-72h').value = r72;
+    },
+
+    async runRainfallPrediction(event) {
+      if (event) event.preventDefault();
+      const btn = document.getElementById('btn-demo-run-rain');
+      btn.disabled = true;
+      btn.textContent = 'Computing Risk...';
+
+      const payload = {
+        locality_name: document.getElementById('demo-rain-locality').value,
+        drainage_capacity_proxy: parseFloat(document.getElementById('demo-rain-drainage').value),
+        rainfall_1h_mm: parseFloat(document.getElementById('demo-rain-1h').value),
+        rainfall_3h_mm: parseFloat(document.getElementById('demo-rain-3h').value),
+        rainfall_6h_mm: parseFloat(document.getElementById('demo-rain-6h').value),
+        rainfall_24h_mm: parseFloat(document.getElementById('demo-rain-24h').value),
+        rainfall_prev_72h_mm: parseFloat(document.getElementById('demo-rain-72h').value),
+      };
+
+      try {
+        const res = await apiClient.predictRainfall(payload);
+        this.latestRainResult = res;
+
+        const outBox = document.getElementById('demo-rain-output-box');
+        outBox.style.display = 'block';
+
+        const riskBadge = document.getElementById('demo-rain-risk-badge');
+        riskBadge.textContent = res.risk_category;
+        if (res.risk_category === 'HIGH') {
+          riskBadge.className = 'badge badge-high';
+        } else if (res.risk_category === 'MODERATE') {
+          riskBadge.className = 'badge badge-mod';
+        } else {
+          riskBadge.className = 'badge badge-low';
+        }
+
+        const probPct = Math.round(res.predicted_probability * 100);
+        document.getElementById('demo-rain-prob').textContent = `${probPct}%`;
+      } catch (err) {
+        alert('Rainfall prediction error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Predict Rainfall Risk';
+      }
+    },
+
+    async runCombinedAssessment() {
+      const btn = document.getElementById('btn-demo-run-combined');
+      btn.disabled = true;
+      btn.textContent = 'Fusing Streams...';
+
+      const payload = {
+        locality_name: document.getElementById('demo-rain-locality').value,
+        drainage_capacity_proxy: parseFloat(document.getElementById('demo-rain-drainage').value),
+        rainfall_1h_mm: parseFloat(document.getElementById('demo-rain-1h').value),
+        rainfall_3h_mm: parseFloat(document.getElementById('demo-rain-3h').value),
+        rainfall_6h_mm: parseFloat(document.getElementById('demo-rain-6h').value),
+        rainfall_24h_mm: parseFloat(document.getElementById('demo-rain-24h').value),
+        rainfall_prev_72h_mm: parseFloat(document.getElementById('demo-rain-72h').value),
+        sample_key: this.selectedSampleKey || 'sample_waterlogged'
+      };
+
+      try {
+        const res = await apiClient.runCombinedAssessment(payload);
+        const outBox = document.getElementById('demo-combined-output-box');
+        outBox.style.display = 'block';
+
+        // Stream 1 Visual Summary
+        const img = res.image_stream || {};
+        document.getElementById('demo-comb-img-summary').innerHTML = `
+          <div><b>Observation:</b> ${img.waterlogging_detected ? '🚨 Visible Waterlogging Detected' : '☀️ Road Surface Clear'}</div>
+          <div><b>Visual Severity:</b> ${img.visual_severity}</div>
+          <div><b>Confidence:</b> ${img.confidence_percentage}%</div>
+          <div><b>Boxes Found:</b> ${img.bounding_boxes_count}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">${img.source}</div>
+        `;
+
+        // Stream 2 Rainfall Summary
+        const rain = res.rainfall_stream || {};
+        document.getElementById('demo-comb-rain-summary').innerHTML = `
+          <div><b>Hydrological Risk:</b> <span class="badge ${rain.risk_category === 'HIGH' ? 'badge-high' : rain.risk_category === 'MODERATE' ? 'badge-mod' : 'badge-low'}">${rain.risk_category}</span></div>
+          <div><b>Activation Probability:</b> ${rain.probability_percentage}%</div>
+          <div><b>Acute Rain:</b> ${payload.rainfall_1h_mm} mm/h | <b>Soil Saturation:</b> ${payload.rainfall_prev_72h_mm} mm</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">${rain.source}</div>
+        `;
+
+        // Verdict Badge
+        const vBadge = document.getElementById('demo-comb-verdict-badge');
+        vBadge.textContent = res.combined_status;
+        vBadge.className = `badge ${res.combined_badge}`;
+
+        // Rationale
+        document.getElementById('demo-comb-rationale').textContent = res.rationale;
+      } catch (err) {
+        alert('Combined assessment error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run Combined Dual-Stream Assessment';
+      }
+    },
+
+    async runRouteRecommendation() {
+      const btn = document.getElementById('btn-demo-run-route');
+      btn.disabled = true;
+      btn.textContent = 'Evaluating Road Corridors...';
+
+      const originName = document.getElementById('demo-route-origin').value;
+      const destName = document.getElementById('demo-route-dest').value;
+      const pref = document.getElementById('demo-route-pref').value;
+
+      // Coordinates map for Nagpur landmarks
+      const coordMap = {
+        'Sitabuldi Interchange': { lat: 21.1466, lon: 79.0882 },
+        'Dharampeth Main Road': { lat: 21.1458, lon: 79.0664 },
+        'Civil Lines VIP Road': { lat: 21.1595, lon: 79.0768 },
+        'Pardi Naka Underpass': { lat: 21.1442, lon: 79.1415 },
+        'Manish Nagar (RUB Corridor)': { lat: 21.0920, lon: 79.0780 },
+        'Ambazari Lake Road': { lat: 21.1278, lon: 79.0494 },
+        'Narendra Nagar Flyover': { lat: 21.1092, lon: 79.0815 },
+        'Sadar Residency Road': { lat: 21.1610, lon: 79.0820 }
+      };
+
+      const origCoord = coordMap[originName] || { lat: 21.1466, lon: 79.0882 };
+      const destCoord = coordMap[destName] || { lat: 21.0920, lon: 79.0780 };
+
+      const payload = {
+        origin: { latitude: origCoord.lat, longitude: origCoord.lon, address_name: originName },
+        destination: { latitude: destCoord.lat, longitude: destCoord.lon, address_name: destName },
+        travel_mode: 'driving',
+        preference: pref
+      };
+
+      try {
+        const res = await apiClient.recommendRoutes(payload);
+        const outBox = document.getElementById('demo-route-output-box');
+        const listDiv = document.getElementById('demo-route-cards-list');
+        outBox.style.display = 'block';
+        listDiv.innerHTML = '';
+
+        const routes = res.routes || [];
+        if (routes.length === 0) {
+          listDiv.innerHTML = '<div style="color:var(--text-muted); padding:1rem;">No alternative routes found.</div>';
+          return;
+        }
+
+        routes.forEach((r, idx) => {
+          const isRec = r.is_recommended;
+          const card = document.createElement('div');
+          card.className = `route-card ${isRec ? 'selected' : ''}`;
+          card.style.marginBottom = '0.75rem';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:700; color:#fff;">${r.corridor_name || `Corridor Option #${idx + 1}`}</span>
+              ${isRec ? '<span class="badge badge-low" style="background:#065f46; color:#34d399;">RECOMMENDED SAFE ROUTE</span>' : ''}
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-muted); display:flex; gap:1.25rem; margin-bottom:6px;">
+              <span>📏 <b>${r.distance_km} km</b></span>
+              <span>⏱️ <b>${r.duration_minutes} min</b></span>
+              <span>🌊 Hazard Score: <b>${r.flood_risk_score}</b> (${r.hazard_level})</span>
+            </div>
+            <div style="font-size:0.8rem; color:#d1d5db;">${r.recommendation_rationale}</div>
+          `;
+          listDiv.appendChild(card);
+        });
+      } catch (err) {
+        alert('Route recommendation error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Find Flood-Safe Route';
+      }
+    },
+
+    async loadBenchmarks() {
+      try {
+        const data = await apiClient.getBenchmarks();
+        if (!data || !data.benchmark_summary) return;
+
+        const s = data.benchmark_summary;
+        const models = s.models || {};
+
+        if (models.mobilenetv3_classifier && models.mobilenetv3_classifier.metrics) {
+          const m = models.mobilenetv3_classifier.metrics;
+          const kpi = document.getElementById('bm-kpi-mn-acc');
+          if (kpi) kpi.textContent = `${(m.accuracy * 100).toFixed(1)}%`;
+        }
+
+        if (models.improved_yolov11 && models.improved_yolov11.metrics) {
+          const y = models.improved_yolov11.metrics;
+          const kpi = document.getElementById('bm-kpi-yolo-acc');
+          if (kpi) kpi.textContent = `${(y.accuracy * 100).toFixed(1)}%`;
+        }
+
+        if (models.baseline_yolov11 && models.baseline_yolov11.metrics) {
+          const b = models.baseline_yolov11.metrics;
+          const kpi = document.getElementById('bm-kpi-base-fp');
+          if (kpi) kpi.textContent = `${b.confusion_matrix.fp} / 48`;
+        }
+      } catch (err) {
+        console.warn('Could not load benchmark telemetry:', err);
+      }
+    }
+  };
+
   // Load initial data
   loadDashboard();
   loadModelStatusTab();
+  window.waterwatchDemo.init();
 });
+

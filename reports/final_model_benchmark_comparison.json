@@ -1,0 +1,57 @@
+{
+  "test_dataset_size": 79,
+  "ground_truth_distribution": {
+    "waterlogged_positive": 31,
+    "not_waterlogged_negative": 48
+  },
+  "models": {
+    "baseline_yolov11": {
+      "description": "Previous YOLOv11 checkpoint trained strictly on positive waterlogged images without background negatives",
+      "metrics": {
+        "accuracy": 0.7468,
+        "precision": 0.6222,
+        "recall": 0.9032,
+        "specificity": 0.6458,
+        "f1_score": 0.7368,
+        "confusion_matrix": {
+          "tn": 31,
+          "fp": 17,
+          "fn": 3,
+          "tp": 28
+        }
+      }
+    },
+    "improved_yolov11": {
+      "description": "YOLOv11 Nano detector fine-tuned on unified dataset containing IndiaScene365 negative road backgrounds",
+      "metrics": {
+        "accuracy": 0.8987,
+        "precision": 1.0,
+        "recall": 0.7419,
+        "specificity": 1.0,
+        "f1_score": 0.8519,
+        "confusion_matrix": {
+          "tn": 48,
+          "fp": 0,
+          "fn": 8,
+          "tp": 23
+        }
+      }
+    },
+    "mobilenetv3_classifier": {
+      "description": "Pretrained MobileNetV3-Small binary classifier trained with class-balanced focal weights and tuned threshold",
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": {
+          "tn": 48,
+          "fp": 0,
+          "fn": 0,
+          "tp": 31
+        }
+      }
+    }
+  }
+}

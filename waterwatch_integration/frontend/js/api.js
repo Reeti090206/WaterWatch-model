@@ -120,5 +120,43 @@ const apiClient = {
     const res = await fetch(`${API_BASE}/models/status`);
     if (!res.ok) throw new Error('Failed to fetch models status');
     return res.json();
+  },
+
+  async getVerifiedSamples() {
+    const res = await fetch(`${API_BASE}/detection/samples`);
+    if (!res.ok) throw new Error('Failed to fetch verified samples');
+    return res.json();
+  },
+
+  async detectSample(sampleKey, confThreshold = 0.25) {
+    const res = await fetch(`${API_BASE}/detection/sample-detect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sample_key: sampleKey, conf_threshold: confThreshold })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Sample detection failed' }));
+      throw new Error(err.detail || 'Sample detection failed');
+    }
+    return res.json();
+  },
+
+  async runCombinedAssessment(payload) {
+    const res = await fetch(`${API_BASE}/assessment/combined`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Combined assessment failed' }));
+      throw new Error(err.detail || 'Combined assessment failed');
+    }
+    return res.json();
+  },
+
+  async getBenchmarks() {
+    const res = await fetch(`${API_BASE}/assessment/benchmarks`);
+    if (!res.ok) throw new Error('Failed to fetch model benchmarks');
+    return res.json();
   }
 };

@@ -128,6 +128,28 @@ class ApiService {
   public async getPredictionTable(rainMultiplier: number = 1.0): Promise<any> {
     return this.request<any>(`/predictions/table?rain_multiplier=${rainMultiplier}`);
   }
+
+  public async getDetectionSamples(): Promise<any> {
+    return this.request<any>("/detection/samples");
+  }
+
+  public async detectSample(sampleKey: string, confThreshold: number = 0.25): Promise<ImageDetectionResponse> {
+    return this.request<ImageDetectionResponse>("/detection/sample-detect", {
+      method: "POST",
+      body: JSON.stringify({ sample_key: sampleKey, conf_threshold: confThreshold }),
+    });
+  }
+
+  public async runCombinedAssessment(payload: any): Promise<any> {
+    return this.request<any>("/assessment/combined", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  public async getBenchmarks(): Promise<any> {
+    return this.request<any>("/assessment/benchmarks");
+  }
 }
 
 export const api = new ApiService();

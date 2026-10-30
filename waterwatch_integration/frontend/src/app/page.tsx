@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import HomeHeroView from "../components/HomeHeroView";
+import LiveAIDemoView from "../components/LiveAIDemoView";
 import LiveDashboardView from "../components/LiveDashboardView";
 import LeafletMapComponent from "../components/LeafletMapComponent";
 import RouteRecommendationView from "../components/RouteRecommendationView";
@@ -103,7 +104,20 @@ export default function HomePage() {
         }}
       >
         {/* Tab 1: Home (Screenshots 1 & 2) */}
-        {activeTab === "home" && <HomeHeroView onNavigate={setActiveTab} />}
+        {activeTab === "home" && (
+          <>
+            <HomeHeroView onNavigate={setActiveTab} />
+            <Footer onNavigate={setActiveTab} />
+          </>
+        )}
+
+        {/* Tab 1.5: Live AI Demo */}
+        {activeTab === "livedemo" && (
+          <>
+            <LiveAIDemoView onNavigate={setActiveTab} />
+            <Footer onNavigate={setActiveTab} />
+          </>
+        )}
 
         {/* Tab 2: Live Dashboard (Screenshots 3 & 4) */}
         {activeTab === "dashboard" && (

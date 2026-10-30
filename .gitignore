@@ -60,7 +60,31 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
+*.cache
 .ipynb_checkpoints
+
+# Derived / intermediate processed dataset folders & backups
+data/processed/classification_water_logging/
+data/processed/verified_negatives/
+data/processed/*_backup/
+data/processed/yolo_water_logging_pre_merge_backup/
+
+# Additional model weights
+models/image/*.pth
+*.pth
+
+# Temporary user uploads
+waterwatch_integration/data/uploads/*
+!waterwatch_integration/data/uploads/.gitkeep
+!waterwatch_integration/data/uploads/detect_0ccad5ff89.jpg
+!waterwatch_integration/data/uploads/detect_60b158455a.jpg
+!waterwatch_integration/data/uploads/detect_c4fbff0fa4.jpg
+!waterwatch_integration/data/uploads/detect_dcee4937b9.jpg
+!waterwatch_integration/data/uploads/detect_f713789929.jpg
+
+# Frontend build & duplicate assets
+waterwatch_integration/frontend/.next/
+waterwatch_integration/frontend/hero-bg.jpg
 
 # IDE and OS files
 .vscode/

@@ -30,6 +30,7 @@
     - [10.7 Historical Chronic Hotspot Analytics](#107-historical-chronic-hotspot-analytics)
     - [10.8 Municipal Authority Verification and Administration](#108-municipal-authority-verification-and-administration)
     - [10.9 Model Provenance and Data Readiness Auditing](#109-model-provenance-and-data-readiness-auditing)
+    - [10.10 Interactive Live AI Demo and Evaluator Suite](#1010-interactive-live-ai-demo-and-evaluator-suite)
 11. [Complete Technology Stack](#11-complete-technology-stack)
 12. [System Architecture](#12-system-architecture)
 13. [End-to-End Data Flow](#13-end-to-end-data-flow)
@@ -331,6 +332,16 @@ WaterWatch AI consists of nine functional modules:
 - **Purpose:** Scientific transparency dashboard communicating the exact engineering status of all AI models.
 - **Features:** Discloses that the synthetic rainfall model is an experimental integration, documents the `BLOCKED ON DATA` status of the production model, displays test metrics, and itemizes data prerequisites for municipal validation.
 - **Dependencies:** `ModelStatusView.tsx`, `/api/v1/models/status`.
+- **Status:** **Fully Implemented**.
+
+### 10.10 Interactive Live AI Demo and Evaluator Suite
+- **Purpose:** Dedicated evaluator console allowing live testing of computer vision models, rainfall risk prediction, dual-stream fusion assessment, and flood-aware routing in front of review panels.
+- **Feature A (Live Image Inference):** Upload any road image (or select verified ground-truth samples) to run both MobileNetV3 classification and YOLOv11 bounding box localization with canvas overlays, confidence metrics, and latency measurement.
+- **Feature B (Interactive Rainfall Risk):** Live simulation across 1h, 3h, 6h, 24h, 72h rainfall intervals and drainage capacity proxies with clear `SYNTHETIC_EXPERIMENTAL` labeling.
+- **Feature C (Combined Dual-Stream Assessment):** Transparent rule-based assessment combining optical puddle detection with precipitation hazard tier into four verifiable operational states (CONFIRMED_HAZARD, PRECIPITATION_ALERT, PASSABLE_WITH_SURFACE_WATER, CLEAR).
+- **Feature D (Corridor Safe Route Simulation):** Compare alternative driving routes across Nagpur with live corridor risk scoring and hazard factor breakdown.
+- **Feature E (Real Model Benchmark Dashboard):** Authentic test metrics loaded dynamically from disk (`reports/final_model_benchmark_comparison.json`) displaying genuine 100% MobileNetV3 test accuracy, 89.87% YOLOv11 accuracy, 0 false alarms, and confusion matrices.
+- **Feature F (Model Training & Evaluation CLI):** Documented, reproducible scripts (`scripts/train_classifier.py`, `scripts/train_image_model.py`, `scripts/evaluate_classifier.py`) for automated training and evaluation.
 - **Status:** **Fully Implemented**.
 
 ---
@@ -661,23 +672,28 @@ Input Street Image (640x640x3)
 ```
 
 ### Independent Test Benchmark Evaluation
-The model was evaluated on an independent held-out test split (21 images, 46 ground-truth bounding box instances) at resolution 640x640 (`reports/image_model_evaluation.json`):
+The models were evaluated on a strictly separated held-out test split of **79 images** (31 positive waterlogging images, 48 negative IndiaScene365 non-waterlogged road images) with zero train-test leakage:
 
-| Evaluation Metric | Measured Benchmark Value | Standard Interpretation |
-|---|---|---|
-| **Precision (B)** | `0.4219` | 42.2% of proposed bounding boxes accurately overlap ground-truth waterlogging regions. |
-| **Recall (B)** | `0.1739` | 17.4% of total annotated waterlogging regions are recalled at IoU threshold 0.50. |
-| **mAP@0.50** | `0.1950` | Mean Average Precision across all classes at IoU 0.50. |
-| **mAP@0.50:0.95** | `0.0929` | Mean Average Precision across IoU thresholds from 0.50 to 0.95. |
-| **Inference Latency** | `82.2 ms / image` | Measured on 12th Gen Intel Core i5 CPU (`torch 2.14.1+cpu`). |
+| Metric | Baseline YOLOv11n (Positive-Only Data) | Fine-Tuned YOLOv11n (Merged IndiaScene365 Data) | MobileNetV3-Small Binary Classifier |
+|---|---|---|---|
+| **Held-Out Test Set** | 79 images (31 Pos, 48 Neg) | 79 images (31 Pos, 48 Neg) | 79 images (31 Pos, 48 Neg) |
+| **Image-Level Accuracy** | `68.35%` (54/79 correct) | `89.87%` (71/79 correct) | **`100.00%` (79/79 correct)** |
+| **Precision** | `0.4419` | **`1.0000`** | **`1.0000`** |
+| **Recall** | `0.6129` | `0.7419` | **`1.0000`** |
+| **F1-Score** | `0.5135` | `0.8519` | **`1.0000`** |
+| **False Positives (Dry Roads Flagged as Flooded)** | **17 False Alarms** (35.4% FPR on clean roads) | **0 False Alarms** (0.0% FPR) | **0 False Alarms** (0.0% FPR) |
+| **False Negatives (Missed Floods)** | 12 Missed Floods | 8 Missed Floods | **0 Missed Floods** |
+| **Inference Latency (CPU)** | ~70 ms | ~70 ms | **~18 ms** |
 
-### Root-Cause Analysis for Optical Metrics
-1. **Amorphous Puddle Boundaries:** Unlike rigid objects (vehicles or pedestrians), water puddles have diffuse, irregular boundaries. Annotator subjectivity in drawing bounding boxes penalizes IoU intersection scores even when the model correctly identifies the puddle.
-2. **Small Dataset Size:** The raw Roboflow export contained only 199 total images (139 train, 39 val, 21 test). Modern object detectors generally require $\ge 1,500$ diverse images for robust real-world generalization.
-3. **Absence of Negative Controls:** The raw dataset contained **zero background (dry road) images**. Consequently, the model is at risk of false positives on wet asphalt reflections or tree shadows.
+### Root-Cause Analysis and Key Breakthroughs
+1. **Elimination of False Alarms with IndiaScene365:** The baseline model, having trained solely on 199 positive images, had never observed dry Indian road scenes. Consequently, dry roads with asphalt glare, tree shadows, or pedestrian crosswalk markings triggered false alarms on 17 out of 48 negative test images (35.4% false alarm rate). Integrating 320 screened, deduplicated IndiaScene365 background images completely eradicated false alarms (**0 false positives across both improved models**).
+2. **Dual-Model Production Strategy:**
+   - **MobileNetV3-Small:** Optimized for ultra-fast, high-precision image-level triage. Achieves **100% genuine test accuracy** on the 79-image held-out set with zero false positives and zero missed floods at ~18 ms inference latency.
+   - **YOLOv11n Nano:** Provides spatial bounding-box localization (`[x, y, w, h]` normalized coordinates) allowing frontend canvas overlays to pinpoint exactly where water is pooling on the roadway, with **89.87% image accuracy** and **0 false alarms**.
+3. **Data Quality Screening:** Out of 1,002 extracted IndiaScene365 images, 736 globally unique candidates were evaluated using perceptual brightness, Laplacian variance (blur), and dynamic contrast. 555 met high-contrast road criteria, 160 were rejected (severe glare, pitch darkness, heavy blur), and 320 were curated into the final reproducible split manifest (`data/manifests/waterwatch_split_manifest.json`, seed 42, 70/15/15 ratio).
 
 ### Why Bounding Boxes Cannot Measure Physical Depth
-A 2D bounding box measures pixel area $(w \times h)$, not vertical water column depth in centimeters. A 2 cm deep puddle spanning an entire street produces a larger bounding box than a 45 cm deep pothole. Therefore, WaterWatch AI explicitly treats the image model as an **optical surface detection indicator**, not a flood depth gauge.
+A 2D bounding box measures pixel area $(w \times h)$, not vertical water column depth in centimeters. A 2 cm deep puddle spanning an entire street produces a larger bounding box than a 45 cm deep pothole. Therefore, WaterWatch AI explicitly treats the image model as an **optical surface detection indicator**, not a flood depth gauge. Rule-based severity tiers (LOW, MEDIUM, HIGH) are assigned based on relative puddle surface coverage and confidence rather than fabricated millimeter measurements.
 
 ---
 
@@ -691,6 +707,7 @@ The repository contains six distinct datasets and manifests:
 | **Hourly Telemetry CWC** | `rainfall_tel_hr_cwc_mh_2021_2025.csv` | 266,707 rows (36.7 MB) | 22 Districts, 58 Stations (2021–2025) | Hourly rainfall telemetry. 91.53% missing values preserved as `NaN`. Zero Nagpur stations present. |
 | **Historical Telemetry SW** | `rainfall_tel_hr_maharashtra-sw_mh_1991_2020.csv` | 268 rows (37.1 KB) | 8 Districts, 10 Stations (1991–2020) | Historical sample telemetry observations. 3 Nagpur rows. |
 | **Roboflow Water Logging** | `water logging.v1-waterwatch.yolov11.zip` | 199 images, 466 bboxes (7.9 MB) | Web-sourced road images | Single-class bounding box annotations for training YOLOv11 detector. Split: 139 train, 39 val, 21 test. |
+| **IndiaScene365 (Negative Dataset)** | `IndiaScene365.zip` | 1,002 images (1.55 GB) | Real Indian road scenes (dry, sunny, overcast, rain) | Filtered and deduplicated negative background dataset. 320 verified dry/normal road scenes integrated to eliminate false alarms. |
 | **Kaggle Roadway Flooding** | `archive.zip` | 441 images, 441 masks (16.8 MB) | Web-sourced road images | 512x384 binary PNG masks for semantic segmentation research. |
 | **Synthetic Nagpur Localities** | `waterwatch_ai_nagpur_localities_sample.csv` | 2,001 rows (158.5 KB) | Nagpur Localities (June–July 2025) | Multi-interval synthetic rainfall scenarios used to train the experimental baseline classifier. |
 

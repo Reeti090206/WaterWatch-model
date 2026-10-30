@@ -108,6 +108,21 @@ export interface ImageDetectionResponse {
   detections: DetectionBox[];
   conf_threshold_used: number;
   disclaimer: string;
+  classifier_result?: {
+    predicted_class: string;
+    confidence: number;
+    class_probabilities: { waterlogged: number; not_waterlogged: number };
+    model: string;
+  };
+  severity?: {
+    level: string;
+    label: string;
+    coverage_ratio: number;
+    method: string;
+  };
+  inference_latency_ms?: number;
+  model_version?: string;
+  uncertainty_flag?: boolean;
 }
 
 export interface RoutePoint {
