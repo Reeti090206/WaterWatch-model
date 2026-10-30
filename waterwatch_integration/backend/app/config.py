@@ -21,6 +21,9 @@ RAINFALL_MODEL_PATH = MODELS_DIR / "rainfall" / "synthetic_rainfall_model.joblib
 METEOROLOGICAL_BASELINE_PATH = MODELS_DIR / "rainfall" / "experimental_risk_baseline.joblib"
 IMAGE_MODEL_PATH = MODELS_DIR / "image" / "best.pt"
 
+# POSIX-compliant default database URL path (compatible with Python 3.10+)
+DEFAULT_DB_PATH = (DATA_DIR / "waterwatch_integration.db").as_posix()
+
 
 class Settings(BaseModel):
     app_name: str = "WaterWatch AI — Nagpur Full-Stack Integration"
@@ -31,7 +34,7 @@ class Settings(BaseModel):
     port: int = int(os.getenv("PORT") or os.getenv("INTEGRATION_PORT", "8080"))
     database_url: str = os.getenv(
         "DATABASE_URL",
-        f"sqlite:///{str(DATA_DIR / 'waterwatch_integration.db').replace('\\', '/')}"
+        f"sqlite:///{DEFAULT_DB_PATH}"
     )
     admin_username: str = os.getenv("ADMIN_USERNAME", "admin")
     admin_password: str = os.getenv("ADMIN_PASSWORD", "admin123")
