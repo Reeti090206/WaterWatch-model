@@ -1,0 +1,24 @@
+{
+  "feature_columns": [
+    "rainfall_mm",
+    "rainfall_prev1_day_mm",
+    "rainfall_prev2_day_mm",
+    "rainfall_2day_total_mm",
+    "rainfall_3day_total_mm",
+    "api_7day",
+    "rainfall_trend_ratio",
+    "is_monsoon"
+  ],
+  "feature_descriptions": {
+    "rainfall_mm": "Current 24-hour observed rainfall in millimeters (or 1-hour for telemetry)",
+    "rainfall_prev1_day_mm": "Rainfall observed on previous day (lag-1)",
+    "rainfall_prev2_day_mm": "Rainfall observed 2 days prior (lag-2)",
+    "rainfall_2day_total_mm": "48-hour cumulative rainfall accumulation",
+    "rainfall_3day_total_mm": "72-hour cumulative rainfall accumulation",
+    "api_7day": "Antecedent Precipitation Index computed with decay lambda=0.85 over 7 days",
+    "rainfall_trend_ratio": "Ratio of current day rainfall to 3-day cumulative rainfall",
+    "is_monsoon": "Boolean flag (1 for June-Sept monsoon months, 0 otherwise)"
+  },
+  "target_column": "waterlogged_label",
+  "target_description": "Binary flag (1 = waterlogged event verified, 0 = verified non-waterlogged control observation)"
+}

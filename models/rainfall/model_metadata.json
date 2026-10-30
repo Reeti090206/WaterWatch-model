@@ -1,0 +1,149 @@
+{
+  "model_name": "LogisticRegression",
+  "model_type": "LogisticRegression",
+  "model_version": "1.0.0-synthetic",
+  "training_data": {
+    "source_file": "waterwatch_ai_nagpur_localities_sample.csv",
+    "provenance": "SYNTHETIC_EXPERIMENTAL",
+    "locality_scope": "Nagpur Localities (Demonstration)",
+    "total_samples": 2000,
+    "train_samples": 1400,
+    "val_samples": 300,
+    "test_samples": 300,
+    "positive_class_ratio_train": 0.2279,
+    "positive_class_ratio_test": 0.2233,
+    "split_type": "Chronological Holdout (70/15/15) to prevent rolling window leakage"
+  },
+  "feature_schema": {
+    "feature_order": [
+      "rainfall_1h_mm",
+      "rainfall_3h_mm",
+      "rainfall_6h_mm",
+      "rainfall_24h_mm",
+      "rainfall_prev_72h_mm",
+      "drainage_capacity_proxy"
+    ],
+    "feature_descriptions": {
+      "rainfall_1h_mm": "Acute 1-hour rainfall accumulation in mm",
+      "rainfall_3h_mm": "Cumulative 3-hour rainfall accumulation in mm",
+      "rainfall_6h_mm": "Cumulative 6-hour rainfall accumulation in mm",
+      "rainfall_24h_mm": "Cumulative 24-hour rainfall accumulation in mm",
+      "rainfall_prev_72h_mm": "Antecedent 72-hour soil saturation rainfall in mm",
+      "drainage_capacity_proxy": "Synthetic locality runoff clearance rate (index in [0.0, 1.0])"
+    },
+    "excluded_features": [
+      "severity (100% target leakage)",
+      "location_id / location_name (locality memorization bias prevention)"
+    ]
+  },
+  "feature_importance_or_coefficients": {
+    "rainfall_1h_mm": 0.3854,
+    "rainfall_3h_mm": 0.2286,
+    "rainfall_6h_mm": -0.0211,
+    "rainfall_24h_mm": 0.0486,
+    "rainfall_prev_72h_mm": 0.1567,
+    "drainage_capacity_proxy": -0.3733
+  },
+  "evaluation_metrics_test_set": {
+    "accuracy": 0.68,
+    "precision": 0.3739,
+    "recall": 0.6418,
+    "f1_score": 0.4725,
+    "roc_auc": 0.7015,
+    "pr_auc": 0.4157,
+    "brier_score": 0.2238,
+    "confusion_matrix": [
+      [
+        161,
+        72
+      ],
+      [
+        24,
+        43
+      ]
+    ]
+  },
+  "all_model_evaluations": {
+    "MajorityBaseline": {
+      "accuracy": 0.7767,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "roc_auc": 0.5,
+      "pr_auc": 0.2233,
+      "brier_score": 0.2233,
+      "confusion_matrix": [
+        [
+          233,
+          0
+        ],
+        [
+          67,
+          0
+        ]
+      ]
+    },
+    "LogisticRegression": {
+      "accuracy": 0.68,
+      "precision": 0.3739,
+      "recall": 0.6418,
+      "f1_score": 0.4725,
+      "roc_auc": 0.7015,
+      "pr_auc": 0.4157,
+      "brier_score": 0.2238,
+      "confusion_matrix": [
+        [
+          161,
+          72
+        ],
+        [
+          24,
+          43
+        ]
+      ]
+    },
+    "RandomForest": {
+      "accuracy": 0.7,
+      "precision": 0.3678,
+      "recall": 0.4776,
+      "f1_score": 0.4156,
+      "roc_auc": 0.667,
+      "pr_auc": 0.3734,
+      "brier_score": 0.2064,
+      "confusion_matrix": [
+        [
+          178,
+          55
+        ],
+        [
+          35,
+          32
+        ]
+      ]
+    },
+    "HistGradientBoosting": {
+      "accuracy": 0.67,
+      "precision": 0.3545,
+      "recall": 0.5821,
+      "f1_score": 0.4407,
+      "roc_auc": 0.6638,
+      "pr_auc": 0.3712,
+      "brier_score": 0.2179,
+      "confusion_matrix": [
+        [
+          162,
+          71
+        ],
+        [
+          28,
+          39
+        ]
+      ]
+    }
+  },
+  "operational_warnings": [
+    "Trained on synthetic demonstration records, not real Nagpur Municipal Corporation (NMC) field incident telemetry.",
+    "Do NOT treat model score as a calibrated real-world flooding probability.",
+    "High test metrics reflect synthetic rule learning rather than genuine hydrology."
+  ]
+}
