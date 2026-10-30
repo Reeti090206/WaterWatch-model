@@ -27,8 +27,8 @@ class Settings(BaseModel):
     version: str = "1.0.0"
     environment: str = os.getenv("ENVIRONMENT", "development")
     api_prefix: str = "/api/v1"
-    host: str = os.getenv("INTEGRATION_HOST", "127.0.0.1")
-    port: int = int(os.getenv("INTEGRATION_PORT", "8080"))
+    host: str = os.getenv("INTEGRATION_HOST") or ("0.0.0.0" if os.getenv("PORT") or os.getenv("ENVIRONMENT") == "production" else "127.0.0.1")
+    port: int = int(os.getenv("PORT") or os.getenv("INTEGRATION_PORT", "8080"))
     database_url: str = os.getenv(
         "DATABASE_URL",
         f"sqlite:///{str(DATA_DIR / 'waterwatch_integration.db').replace('\\', '/')}"
